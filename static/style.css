@@ -2,8 +2,9 @@
 	text-align: center;
 }
 
-.search-params-container {
+form, .search-container {
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: center;
 	align-items: flex-end;
 	gap: 10px;
