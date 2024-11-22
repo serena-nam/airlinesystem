@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	<title> Customer Login </title>
+</head>
+<body>
+	<div class="customer-login-page-container">
+		<h1> Customer Login </h1>
+		<form class="customer-login-container" action="/loginAuth" method="POST">
+			<div class="login-field-container"> 
+				<input type="email" name="email" placeholder="Email" required/> 
+			</div>
+			
+			<div class="login-field-containerr"> 
+				<input type="password" name="password" placeholder="Password" required/> 
+			</div>
+			
+			<div class="sign-up-check-container">
+				<p> Don't have an account? </p>
+				<a href="/customer-register"> Sign Up </a>
+			</div>
+			
+			<div class="login-button-container"> 
+				<input type="submit" value = "Login" />
+			</div>
+
+			{% if error %}
+				<p class="error"><strong>Error:</strong> {{error}}</p>
+			{% endif %}
+		</form>
+		
+	</div>
+	
+	
+</body>
+</html>

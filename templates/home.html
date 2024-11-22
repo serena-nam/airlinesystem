@@ -1,47 +1,94 @@
 <!DOCTYPE html>
 <html>
-    
+
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
-	<title>
-		Airline Ticket Reservation System
-	</title>
+    <title>
+        Airline Ticket Reservation System
+    </title>
 </head>
 <body>
-	<div class="home-page-container">
-		<div class="flight-search-container"> 
-			<h1>Find Flights</h1>
+    <div class="home-page-container">
+        <nav class="navbar">
+            <div class="home-container"> 
+                <a href="/"> Home </a>
+            </div>
+            <div class="login-container">
+                <a href="/customer-login"> Customer Login </a>
+                <a href="/staff-login"> Staff Login </a>
+            </div>
+            
+        </nav>
+        
+        
+        <div class="flight-search-container"> 
+            <h1>Find Flights</h1>
             <form class="search-container" action="/getFlights" method="POST">
-                <!-- <div class="search-params-container"> -->
-                    <div class="search-field-container"> 
-                        <h3> Origin </h3>
-                        <input type="text" name="departure_airport_code" placeholder="Select origin" required/>
-                    </div>
-                        
-                    <div class="search-field-container"> 
-                        <h3> Destination </h3>
-                        <input type="text" name="arrival_airport_code" placeholder="Select destination" required/> 
-                    </div>
-        
-                    <div class="search-field-containerr"> 
-                            <h3> Departure</h3>
-                            <input type="date" name="departure_date" required/> 
-                    </div>
-        
-                    <div class="search-field-container"> 
-                            <h3> Arrival </h3>
-                            <input type="date" name="arrival_date"/> 
-                    </div>
-                        
-                    <div class="search-button-container"> 
-                        <input type="submit" value = Search />
-                    </div>
-                <!-- </div> -->
+                <div class="search-field-container"> 
+                    <h3> Origin </h3>
+                    <input type="text" name="departure_airport_code" placeholder="Select origin" required/>
+                </div>
+                
+                <div class="search-field-container"> 
+                    <h3> Destination </h3>
+                    <input type="text" name="arrival_airport_code" placeholder="Select destination" required/> 
+                </div>
+                
+                <div class="search-field-container"> 
+                    <h3> Departure</h3>
+                    <input type="date" name="departure_date" required/> 
+                </div>
+                
+                <div class="search-field-container"> 
+                    <h3> Arrival </h3>
+                    <input type="date" name="arrival_date"/> 
+                </div>
+                
+                <div class="search-button-container"> 
+                    <input type="submit" value = Search />
+                </div>
             </form>
+            
+        </div>
 
-		</div>
-	</div>
+        {% for flight in flights %}
+        <table>
+            <tbody>
+                
+                    <thead>
+                        <tr>
+                            <th>Airline Name</th>
+                            <th>Airplane ID</th>
+                            <th>Flight Number</th>
+                            <th>Departure Date Time</th>
+                            <th>Arrival Date Time</th>
+                            <th>Base Ticket Price</th>
+                            <th>Flight Status</th>
+                            <th>Departure Airport Code</th>
+                            <th>Arrival Airport Code</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>{{ flight.airline_name }}</td>
+                        <td>{{ flight.airplane_ID }}</td>
+                        <td>{{ flight.flight_num }}</td>
+                        <td>{{ flight.departure_date_time }}</td>
+                        <td>{{ flight.arrival_date_time }}</td>
+                        <td>{{ flight.base_ticket_price }}</td>
+                        <td>{{ flight.flight_status }}</td>
+                        <td>{{ flight.departure_airport_code }}</td>
+                        <td>{{ flight.arrival_airport_code }}</td>
+                    </tr>
+                
+            </tbody>
+        </table>
+        {% endfor %}
+
+        {% if error %}
+		    <p class="error"><strong>Error:</strong> {{error}}</p>
+	    {% endif %}
+    </div>
 </body>
 </html>
