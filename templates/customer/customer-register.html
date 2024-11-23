@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
-	<title> Customer Register Page </title>
+    <title> Customer Register Page </title>
 </head>
 <body>
     <div class="customer-register-page-container">
@@ -19,11 +19,11 @@
             
         </nav>
         
-		<h1> Customer Sign Up </h1>
-		<form class="customer-register-container" action="/getFlights" method="POST">
+        <h1> Customer Sign Up </h1>
+        <form class="customer-register-container" action="/registerAuth" method="POST">
             <h3> Account Details </h3>
             <div class="register-row-container">
-				<div class="register-field-container"> 
+                <div class="register-field-container"> 
                     <p> First Name </p>
                     <input type="text" name="fname" placeholder="First Name" required/> 
                 </div>
@@ -32,98 +32,100 @@
                     <p> Last Name </p>
                     <input type="text" name="lname" placeholder="Last Name" required/> 
                 </div>
-			</div>
+            </div>
             
-			<div class="register-row-container">
+            <div class="register-row-container">
                 <div class="register-field-container"> 
                     <p> Email </p>
                     <input type="email" name="email" placeholder="Email" required/> 
                 </div>
-    
+                
                 <div class="register-field-container"> 
                     <p> Password </p>
                     <input type="password" name="password" placeholder="Password" required/> 
                 </div>
             </div>
-
+            
             <h3> User Details </h3>
             <div class="register-row-container">
                 <div class="register-field-container"> 
                     <p> Building</p>
                     <input type="text" name="buildingName" placeholder="Building Name" required/> 
                 </div>
-    
+                
                 <div class="register-field-container"> 
                     <p> Street </p>
                     <input type="text" name="streetName" placeholder="Street" required/> 
                 </div>
-    
+                
                 <div class="register-field-container"> 
                     <p> Apt # </p>
                     <input type="text" name="aptNum" placeholder="Apt Number"/> 
                 </div>    
             </div>
-
+            
             
             <div class="register-row-container">
                 <div class="register-field-container"> 
                     <p> City </p>
                     <input type="text" name="city" placeholder="City" required/> 
                 </div>
-    
+                
                 <div class="register-field-container"> 
                     <p> State </p>
-                    <input type="text" name="state" placeholder="State" required/> 
+                    <input type="text" name="state" placeholder="State" maxlength="2" required/> 
                 </div>
-    
+                
                 <div class="register-field-container"> 
                     <p> Zipcode </p>
                     <input type="number" name="zipcode" placeholder="Zipcode" required/> 
                 </div>
             </div>
             
-
+            
             <div class="register-field-container"> 
                 <p> Phone </p>
-				<input type="number" name="phone"" placeholder="Phone Number" required/> 
-			</div>
-
+                <input type="tel" name="phone"" placeholder="Phone Number" required/> 
+            </div>
+            
             <h3> Passport Details </h3>
             <div class="register-row-container">
                 <div class="register-field-container"> 
                     <p> Passport # </p>
-                    <input type="number" name="ppNum" placeholder="Passport Number" required/> 
+                    <input type="text" name="ppNum" placeholder="Passport Number" required/> 
                 </div>
-    
+                
                 <div class="register-field-container"> 
                     <p> Expiration Date </p>
                     <input type="date" name="ppExp" placeholder="Expiration Date" required/> 
                 </div>
-
+                
                 <div class="register-field-container"> 
                     <p> Country </p>
                     <input type="text" name="ppCountry" placeholder="Country" required/> 
                 </div>
-    
+                
             </div>
             
-            
-
             <div class="register-field-container"> 
                 <p> Date of Birth </p>
-				<input type="date" name="dob" placeholder="Date of Birth" required/> 
-			</div>
-			
-			<div class="login-check-container">
-				<p> Already have an account? </p>
+                <input type="date" name="dob" placeholder="Date of Birth" required/> 
+            </div>
+            
+            <div class="login-check-container">
+                <p> Already have an account? </p>
                 <a href="/customer-login"> Login </a>
-			</div>
-			
-			<div class="register-button-container"> 
-				<input type="submit" value = "Sign Up" />
-			</div>
-		</form>
-		
-	</div>
+            </div>
+            
+            <div class="register-button-container"> 
+                <input type="submit" value = "Sign Up" />
+            </div>
+        </form>
+        
+        {% if error %}
+            <p class="error"><strong>Error:</strong> {{error}}</p>
+        {% endif %}
+        
+    </div>
 </body>
 </html>

@@ -26,6 +26,19 @@ def customer_login():
 def customer_register():
 	return render_template('customer/customer-register.html')
 
+@app.route('/customer-home')
+def customer_home():
+    # email = session['email']
+    name = session['first_name']
+    # cursor = conn.cursor();
+    # query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
+    # cursor.execute(query, (username))
+    # data1 = cursor.fetchall() 
+    # for each in data1:
+    #     print(each['blog_post'])
+    # cursor.close()
+    return render_template('customer/customer-home.html', name=name)
+
 @app.route('/getFlights', methods=['POST'])
 def getFlights():
 	#grabs information from the forms
@@ -90,18 +103,56 @@ def loginAuth():
 		error = 'Invalid email or password'
 		return render_template('customer/customer-login.html', error=error)
 
-@app.route('/customer-home')
-def customer_home():
-    # email = session['email']
-    name = session['first_name']
-    # cursor = conn.cursor();
-    # query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    # cursor.execute(query, (username))
-    # data1 = cursor.fetchall() 
-    # for each in data1:
-    #     print(each['blog_post'])
-    # cursor.close()
-    return render_template('customer/customer-home.html', name=name)
+#Authenticates the register
+@app.route('/registerAuth', methods=['GET', 'POST'])
+def registerAuth():
+	#grabs information from the forms
+	fname = request.form['fname']
+	lname = request.form['lname']
+
+	email = request.form['email']
+	password = request.form['password']
+
+	building = request.form['buildingName']
+	street = request.form['streetName']
+	apt = request.form['aptNum']
+
+	city = request.form['city']
+	state = request.form['state']
+	zipcode = request.form['zipcode']
+
+	phone = request.form['phone']
+	passport = request.form['ppNum']
+	expiration = request.form['ppExp']
+	country = request.form['ppCountry']
+	dob = request.form['dob']
+
+	#cursor used to send queries
+	cursor = conn.cursor()
+	#executes query
+	query = 'SELECT * FROM customer WHERE email = %s'
+	cursor.execute(query, (email))
+	#stores the results in a variable
+	data = cursor.fetchone()
+	#use fetchall() if you are expecting more than 1 data row
+	error = None
+	if(data):
+		#If the previous query returns data, then user exists
+		error = "This user already exists"
+		return render_template('customer/customer-register.html', error = error)
+	else:
+		ins = 'INSERT INTO customer VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+		cursor.execute(ins, (fname, lname, email, password, building, street, apt, city, state, zipcode, passport, expiration, country, dob))
+		conn.commit()
+
+		insPhone = 'INSERT INTO customer_phone VALUES(%s, %s)'
+		cursor.execute(insPhone, (email, phone))
+		conn.commit()
+		cursor.close()
+
+		return render_template('customer/customer-home.html')
+
+
 
 app.secret_key = 'some key that you will never guess'
 #Run the app on localhost port 5000
