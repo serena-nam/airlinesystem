@@ -14,19 +14,22 @@ conn = pymysql.connect(host='localhost',
 						charset='utf8mb4',
 						cursorclass=pymysql.cursors.DictCursor)
 
-#Define a route to hello function
+#Define a route to home function - goes to home page
 @app.route('/')
 def home():
 	return render_template('home.html')
 
+#define a route to customerLogin function - goes to customer login page
 @app.route('/customer-login')
 def customerLogin():
 	return render_template('customer/customer-login.html')
 
+#define a route to customerRegister function - goes to customer reg page
 @app.route('/customer-register')
 def customerRegister():
 	return render_template('customer/customer-register.html')
 
+#define a route to custHome function - shows customer's homepage and their flights
 @app.route('/customer-home')
 def custHome():
     # email = session['email']
@@ -47,6 +50,8 @@ def custHome():
 	else:
 		return render_template("customer/customer-home.html", error=error)
 
+
+#finds flights for search in home page
 @app.route('/findFlights', methods=['POST'])
 def findFlights():
 	#grabs information from the forms
@@ -87,6 +92,7 @@ def findFlights():
 	else:
 		return render_template("home.html", error=error)
 
+#shows status of flights in home page
 @app.route('/checkStatus', methods=['POST'])
 def checkStatus():
 	#grabs information from the forms
@@ -153,7 +159,7 @@ def custLoginAuth():
 		error = 'Invalid email or password'
 		return render_template('customer/customer-login.html', error=error)
 
-#Authenticates the register
+#Authenticates the customer register
 @app.route('/customerRegisterAuth', methods=['GET', 'POST'])
 def custRegisterAuth():
 	#grabs information from the forms
