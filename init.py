@@ -1,6 +1,7 @@
 #Import Flask Library
 from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
+import datetime
 
 #Initialize the app from Flask
 app = Flask(__name__)
@@ -19,42 +20,92 @@ def home():
 	return render_template('home.html')
 
 @app.route('/customer-login')
-def customer_login():
+def customerLogin():
 	return render_template('customer/customer-login.html')
 
 @app.route('/customer-register')
-def customer_register():
+def customerRegister():
 	return render_template('customer/customer-register.html')
 
 @app.route('/customer-home')
-def customer_home():
+def custHome():
     # email = session['email']
-    name = session['first_name']
-    # cursor = conn.cursor();
-    # query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    # cursor.execute(query, (username))
-    # data1 = cursor.fetchall() 
-    # for each in data1:
-    #     print(each['blog_post'])
-    # cursor.close()
-    return render_template('customer/customer-home.html', name=name)
+	name = session['first_name']
+	email = session['username']
+	curDate = datetime.date.today()
+	cursor = conn.cursor()
 
-@app.route('/getFlights', methods=['POST'])
-def getFlights():
+	query = 'SELECT airline_name, airplane_ID, flight_num, departure_date_time, arrival_date_time FROM Customer NATURAL JOIN Flight WHERE email=%s and departure_date_time < %s'
+	cursor.execute(query, (email, curDate))
+	data = cursor.fetchall()
+	cursor.close()
+	error = 'No Upcoming Flights'
+	app.logger.info(data)
+	
+	if data:
+		return render_template("customer/customer-home.html", flights=data, name=name)
+	else:
+		return render_template("customer/customer-home.html", error=error)
+
+@app.route('/findFlights', methods=['POST'])
+def findFlights():
 	#grabs information from the forms
 	departure_airport_code = request.form.get('departure_airport_code')
 	arrival_airport_code = request.form.get('arrival_airport_code')
 	departure_date = request.form.get('departure_date')
+	return_date = request.form.get('return_date')
+ 
+	#cursor used to send queries
+	cursor = conn.cursor()
+	#executes query
+	if(return_date):
+		query = '''SELECT * FROM Flight WHERE 
+ 		departure_airport_code = %s and
+   		arrival_airport_code = %s and
+		DATE(arrival_date_time) = %s'''
+		cursor.execute(query, (departure_airport_code, arrival_airport_code, return_date))
+	else:
+		query = '''SELECT * FROM Flight WHERE 
+ 		departure_airport_code = %s and
+   		arrival_airport_code = %s and
+		departure_date_time >= %s
+     	'''
+		cursor.execute(query, (departure_airport_code, arrival_airport_code, departure_date))
+	
+	#stores the results in a variable
+	data = cursor.fetchall()
+	#use fetchall() if you are expecting more than 1 data row
+	cursor.close()
+	error = None
+
+	#error message if no flights are found
+	error = 'No Matching Flights'
+
+	app.logger.info(data)
+	if data:
+		return render_template("home.html", findFlights=data)
+	else:
+		return render_template("home.html", error=error)
+
+@app.route('/checkStatus', methods=['POST'])
+def checkStatus():
+	#grabs information from the forms
+	airline = request.form.get('airline_name')
+	flight_num = request.form.get('flight_num')
+	# departure_airport_code = request.form.get('departure_airport_code')
+	# arrival_airport_code = request.form.get('arrival_airport_code')
+	departure_date = request.form.get('departure_date')
+	arrival_date = request.form.get('arrival_date')
  
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
 	query = '''SELECT * FROM Flight WHERE 
- 		departure_airport_code = %s and
-   		arrival_airport_code = %s and
-		departure_date_time >= %s
+ 		airline_name = %s and 
+		flight_num = %s and
+		DATE(departure_date_time) = %s
      '''
-	cursor.execute(query, (departure_airport_code, arrival_airport_code, departure_date))
+	cursor.execute(query, (airline, flight_num, departure_date))
 	# query = 'SELECT * FROM Flight'
 	# cursor.execute(query)
 	#stores the results in a variable
@@ -68,14 +119,13 @@ def getFlights():
 
 	app.logger.info(data)
 	if data:
-		return render_template("home.html", flights=data)
+		return render_template("home.html", checkFlights=data)
 	else:
 		return render_template("home.html", error=error)
 
-
 #Authenticates the customer login
-@app.route('/loginAuth', methods=['GET', 'POST'])
-def loginAuth():
+@app.route('/customerLoginAuth', methods=['GET', 'POST'])
+def custLoginAuth():
 	#grabs information from the forms
 	email = request.form['email']
 	password = request.form['password']
@@ -93,19 +143,19 @@ def loginAuth():
 	if(data):
 		#creates a session for the the user
 		#session is a built in
-		session['email'] = email
+		session['username'] = email
 		first_name = data['first_name']
 		session['first_name'] = first_name
 
-		return redirect(url_for('customer_home'))
+		return redirect(url_for('custHome'))
 	else:
 		#returns an error message to the html page
 		error = 'Invalid email or password'
 		return render_template('customer/customer-login.html', error=error)
 
 #Authenticates the register
-@app.route('/registerAuth', methods=['GET', 'POST'])
-def registerAuth():
+@app.route('/customerRegisterAuth', methods=['GET', 'POST'])
+def custRegisterAuth():
 	#grabs information from the forms
 	fname = request.form['fname']
 	lname = request.form['lname']
@@ -149,10 +199,13 @@ def registerAuth():
 		cursor.execute(insPhone, (email, phone))
 		conn.commit()
 		cursor.close()
+		return render_template('customer/customer-login.html')
 
-		return render_template('customer/customer-home.html')
-
-
+#logout user(should work for both customer and staff)
+@app.route('/logout')
+def logout():
+	session.pop('username')
+	return redirect('/')
 
 app.secret_key = 'some key that you will never guess'
 #Run the app on localhost port 5000
