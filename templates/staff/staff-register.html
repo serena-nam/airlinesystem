@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+    <title> Staff Register Page </title>
+</head>
+<body>
+    <div class="customer-register-page-container">
+        <nav class="navbar">
+            <div class="home-container"> 
+                <a href="/"> Home </a>
+            </div>
+            <div class="login-container">
+                <a href="/customer-login"> Customer Login </a>
+                <a href="/staff-login"> Staff Login </a>
+            </div>
+        </nav>
+        
+        <h1> Staff Sign Up </h1>
+        <form class="customer-register-container" action="/staffRegisterAuth" method="POST">
+            <h3> Account Details </h3>
+            <div class="register-row-container">
+                <div class="register-field-container"> 
+                    <p> First Name </p>
+                    <input type="text" name="fname" placeholder="First Name" required/> 
+                </div>
+                
+                <div class="register-field-container"> 
+                    <p> Last Name </p>
+                    <input type="text" name="lname" placeholder="Last Name" required/> 
+                </div>
+
+                <div class="register-field-container"> 
+                    <p> Date of Birth </p>
+                    <input type="date" name="dob" required/> 
+                </div>
+            </div>
+            
+            <div class="register-row-container">
+                <div class="register-field-container"> 
+                    <p> Username </p>
+                    <input type="username" name="username" placeholder="Username" required/> 
+                </div>
+                
+                <div class="register-field-container"> 
+                    <p> Password </p>
+                    <input type="password" name="password" placeholder="Password" required/> 
+                </div>
+            </div>
+            
+            <div class="register-row-container">
+                <div class="register-field-container"> 
+                    <p> Email </p>
+                    <input type="text" name="email" placeholder="Email" required/> 
+                </div>
+                <div class="register-field-container"> 
+                    <p> Phone Number </p>
+                    <input type="tel" name="phone" placeholder="Phone Number" required/> 
+                </div>
+            </div>
+            
+            
+            <div class="login-check-container">
+                <p> Already have an account? </p>
+                <a href="/staff-login"> Login </a>
+            </div>
+            
+            <div class="register-button-container"> 
+                <input type="submit" value = "Sign Up" />
+            </div>
+        </form>
+        
+        {% if error %}
+            <p class="error"><strong>Error:</strong> {{error}}</p>
+        {% endif %}
+        
+    </div>
+</body>
+</html>

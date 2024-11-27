@@ -17,7 +17,7 @@ conn = pymysql.connect(host='localhost',
 #Define a route to home function - goes to home page
 @app.route('/')
 def home():
-	return render_template('home.html')
+	return render_template('/home.html')
 
 #define a route to customerLogin function - goes to customer login page
 @app.route('/customer-login')
@@ -207,11 +207,89 @@ def custRegisterAuth():
 		cursor.close()
 		return render_template('customer/customer-login.html')
 
+
+@app.route('/staff-login')
+def staffLogin():
+	return render_template('staff/staff-login.html')
+
+@app.route('/staff-register')
+def staffRegister():
+	return render_template('staff/staff-register.html')
+
+@app.route('/staff-home')
+def staffHome():
+	return render_template('staff/staff-home.html')
+
+#Authenticates the customer login
+@app.route('/staffLoginAuth', methods=['GET', 'POST'])
+def staffLoginAuth():
+	username = request.form['username']
+	password = request.form['password']
+
+	cursor = conn.cursor()
+	query = 'SELECT * FROM AirlineStaff WHERE username = %s and password = %s'
+	cursor.execute(query, (username, password))
+	data = cursor.fetchone()
+	cursor.close()
+	error = None
+	if(data):
+		#creates a session for the the user
+		#session is a built in
+		session['username'] = username
+		first_name = data['first_name']
+		session['first_name'] = first_name
+
+		return redirect(url_for('staffHome'))
+	else:
+		#returns an error message to the html page
+		error = 'Invalid email or password'
+		return render_template('staff/staff-login.html', error=error)
+
+
+@app.route('/staffRegisterAuth', methods=['GET', 'POST'])
+def staffRegisterAuth():
+	#grabs information from the forms
+	fname = request.form['fname']
+	lname = request.form['lname']
+	dob = request.form['dob']
+	username = request.form['username']
+	password = request.form['password']
+	email = request.form['email']
+	phone = request.form['phone']
+
+	cursor = conn.cursor()
+	query = 'SELECT * FROM AirlineStaff WHERE username = %s'
+	cursor.execute(query, (username))
+	data = cursor.fetchone()
+	error = None
+	if(data):
+		#If the previous query returns data, then user exists
+		error = "This username already exists"
+		return render_template('customer/customer-register.html', error = error)
+	else:
+		insert_q = 'INSERT INTO AirlineStaff VALUES(%s, %s, %s, %s, %s)'
+		cursor.execute(insert_q, (username, password, fname, lname, dob))
+		conn.commit()
+
+		insert_email_q = 'INSERT INTO AirlineStaff_email VALUES(%s, %s)'
+		cursor.execute(insert_email_q, (username, email))
+		conn.commit()
+  
+		insert_phone_q = 'INSERT INTO AirlineStaff_phone VALUES(%s, %s)'
+		cursor.execute(insert_phone_q, (username, phone))
+		conn.commit()
+		cursor.close()
+		return render_template('staff/staff-login.html')
+
+
+
+
 #logout user(should work for both customer and staff)
 @app.route('/logout')
 def logout():
 	session.pop('username')
 	return redirect('/')
+
 
 app.secret_key = 'some key that you will never guess'
 #Run the app on localhost port 5000
