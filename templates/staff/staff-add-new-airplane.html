@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	<title> Staff Home </title>
+</head>
+<body>
+	<nav class="navbar">
+		<div class="home-container"> 
+			<a href="/staff-home"> Staff Home </a>
+		</div>
+	</nav>
+
+	<h1>Welcome {{first_name}}</h1>
+	
+	<div class="cust-home-container">
+		<div class="my-flights-container">
+			<h2>Add New Airplane</h2>
+            <form action="/staff-add-new-airplane" method="POST"
+				style="width: 50vw; margin: 0 auto;"
+			>
+				<div style="display: grid; gap: 0.5rem; grid-template-columns: repeat(2, auto);">
+					<!-- <label for="airline_name">Airline Name</label>
+					<select name="airline_name">
+						{% for airline in airlines %}
+							<option value="{{airline.airline_name}}">{{airline.airline_name}}</option>
+						{% endfor %}
+					</select> -->
+					<label for="airplane_ID">Airplane ID</label>
+					<input type="text" name="airplane_ID" maxlength="20" required/>
+					<label for="num_seats">Seats</label>
+					<input type="number" name="num_seats" required/>
+					<label for="model_num">Manufacturing Company</label>
+					<input type="text" name="manufacturing_company" maxlength="20" required/>
+					<label for="model_num">Model Number</label>
+					<input type="text" name="model_num" maxlength="20" required/>
+					<label for="manufacture_date">Manufacture Date</label>
+					<input type="date" name="manufacture_date" required/>
+				</div>
+                <input type="submit" value="Add" style="width: 50%; height: 2rem;" />
+            </form>
+			
+			{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+			{% endif %}
+			{% if status %}
+			<p class="status"><strong>Status:</strong> {{status}}</p>
+			{% endif %}
+
+			<table>
+				<tbody>
+					<thead>
+						<tr>
+							<th>Airline Name</th>
+							<th>Airplane ID</th>
+							<th>Seats</th>
+							<th>Manufacturer</th>
+							<th>Model Num</th>
+							<th>Manufacture Date</th>
+						</tr>
+					</thead>
+					{% for airplane in airplanes %}
+					<tr>
+						<td>{{ airplane.airline_name }}</td>
+						<td>{{ airplane.airplane_ID }}</td>
+						<td>{{ airplane.num_seats }}</td>
+						<td>{{ airplane.manufacturing_company }}</td>
+						<td>{{ airplane.model_num }}</td>
+						<td>{{ airplane.manufacture_date }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	<title> Staff Home </title>
+</head>
+<body>
+	<nav class="navbar">
+		<div class="home-container"> 
+			<a href="/staff-home"> Staff Home </a>
+		</div>
+	</nav>
+
+	<h1>Welcome {{first_name}}</h1>
+	
+	<div class="cust-home-container">
+		<div class="my-flights-container">
+			<h2>Add New Airport</h2>
+            <form action="/staff-add-new-airport" method="POST"
+				style="width: 50vw; margin: 0 auto;"
+			>
+				<div style="display: grid; gap: 0.5rem; grid-template-columns: repeat(2, auto);">
+					<label for="airline_name">Airline Name</label>
+					<input type="text" name="airline_name" maxlength="3" placeholder="ex. JFK" required/>
+					<label for="name">Name</label>
+					<input type="text" name="name" placeholder="ex. John F. Kennedy International Airport" required/>
+					<label for="city">City</label>
+					<input type="text" name="city" placeholder="ex. New York City" required/>
+					<label for="country">Country</label>
+					<input type="text" name="country" placeholder="ex. United States" required/>
+					<label for="num_terminals">Number of Terminals</label>
+					<input type="number" name="num_terminals" placeholder="5" required/>
+					<label for="airport_type">Airport Type</label>
+					<select name="airport_type">
+						<option value="Domestic">Domestic</option>
+						<option value="International">International</option>
+						<option value="Both">Both</option>
+					</select>
+				</div>
+                <input type="submit" value="Add" style="width: 50%; height: 2rem;" />
+            </form>
+			
+			{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+			{% endif %}
+			{% if status %}
+			<p class="status"><strong>Status:</strong> {{status}}</p>
+			{% endif %}
+		</div>
+	</div>
+</body>
+</html>

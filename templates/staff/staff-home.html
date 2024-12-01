@@ -9,7 +9,7 @@
 <body>
 	<nav class="navbar">
 		<div class="home-container"> 
-			<a href="/customer-home"> Staff Home </a>
+			<a href="/staff-home"> Staff Home </a>
 		</div>
 	</nav>
 
@@ -18,7 +18,32 @@
 	<div class="cust-home-container">
 		<div class="my-flights-container">
 			<h2> Flights </h2>
-			{% for flight in flights %}
+			<a href="/staff-add-new-airport">
+				<button style="padding: 0.5rem 1.5rem">Add New Airport</button>
+			</a>
+			<a href="/staff-add-new-airplane">
+				<button style="padding: 0.5rem 1.5rem">Add New Airplane</button>
+			</a>
+			<a href="/staff-add-new-flight">
+				<button style="padding: 0.5rem 1.5rem">Add New Flight</button>
+			</a>
+            <form action="/staff-home" method="POST">
+                <div>
+                    <label for="departure_airport_code">Departs from</label>
+                    <input type="text" name="departure_airport_code" placeholder="ex. JFK" value="{{departure_airport_code}}" style="width: 4rem"/>
+                </div>
+                <div>
+                    <label for="arrival_airport_code">Arrives at</label>
+                    <input type="text" name="arrival_airport_code" placeholder="ex. SFO" value="{{arrival_airport_code}}" style="width: 4rem"/>
+                </div>
+                <div>
+                    <label for="date_range_begin">From</label>
+                    <input type="date" name="date_range_begin" value="{{date_range_begin}}" style="width: 8rem"/>
+                    <label for="date_range_end">to</label>
+                    <input type="date" name="date_range_end" value="{{date_range_end}}" style="width: 8rem"/>
+                </div>
+                <input type="submit" value="Filter" />
+            </form>
 			<table>
 				<tbody>
 					<thead>
@@ -28,27 +53,31 @@
 							<th>Flight Number</th>
 							<th>Departure Date Time</th>
 							<th>Arrival Date Time</th>
-							<!-- <th>Base Ticket Price</th>
 							<th>Flight Status</th>
 							<th>Departure Airport Code</th>
-							<th>Arrival Airport Code</th> -->
+							<th>Arrival Airport Code</th>
+							<!-- <th>Base Ticket Price</th> -->
+							<th>Customers</th>
 						</tr>
 					</thead>
+					{% for flight in flights %}
 					<tr>
 						<td>{{ flight.airline_name }}</td>
 						<td>{{ flight.airplane_ID }}</td>
 						<td>{{ flight.flight_num }}</td>
 						<td>{{ flight.departure_date_time }}</td>
 						<td>{{ flight.arrival_date_time }}</td>
-						<!-- <td>{{ flight.base_ticket_price }}</td>
 						<td>{{ flight.flight_status }}</td>
 						<td>{{ flight.departure_airport_code }}</td>
-						<td>{{ flight.arrival_airport_code }}</td> -->
+						<td>{{ flight.arrival_airport_code }}</td>
+						<!-- <td>{{ flight.base_ticket_price }}</td> -->
+						<td>
+							<a href="/staff-customers-on-flight?airline_name={{flight.airline_name}}&airplane_ID={{flight.airplane_ID}}&flight_num={{flight.flight_num}}&departure_date_time={{flight.departure_date_time}}">View</a>
+						</td>
 					</tr>
-					
+					{% endfor %}
 				</tbody>
 			</table>
-			{% endfor %}
 			
 			{% if error %}
 			<p class="error"><strong>Error:</strong> {{error}}</p>

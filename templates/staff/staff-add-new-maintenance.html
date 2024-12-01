@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	<title> Staff Home </title>
+</head>
+<body>
+	<nav class="navbar">
+		<div class="home-container"> 
+			<a href="/staff-home"> Staff Home </a>
+		</div>
+	</nav>
+
+	<h1>Welcome {{first_name}}</h1>
+	
+	<div class="cust-home-container">
+		<div class="my-flights-container">
+			<h2>Add New Maintenance</h2>
+            <form action="/staff-add-new-maintenance" method="POST"
+				style="width: 50vw; margin: 0 auto;"
+			>
+				<div style="display: grid; gap: 0.5rem; grid-template-columns: repeat(2, auto);">
+					<label for="airline_name">Airline Name</label>
+					<input type="text" name="airline_name" maxlength="20" required/>
+					<label for="airplane_ID">Airplane ID</label>
+					<input type="text" name="airplane_ID" maxlength="20" required/>
+					<label for="flight_num">Flight Number</label>
+					<input type="text" name="flight_num" maxlength="10" required/>
+					<label for="departure_date_time">Departure</label>
+					<input type="datetime-local" name="departure_date_time" required/>
+					<label for="arrival_date_time">Arrival</label>
+					<input type="datetime-local" name="arrival_date_time" required/>
+					<label for="base_ticket_price">Base Ticket Price</label>
+					<input type="number" name="base_ticket_price" required/>
+					<label for="flight_status">Flight Status</label>
+					<input type="text" name="flight_status" maxlength="20" required/>
+					<label for="departure_airport_code">Departure Airport Code</label>
+					<input type="text" name="departure_airport_code" maxlength="3" required/>
+					<label for="arrival_airport_code">Arrival Airport Code</label>
+					<input type="text" name="arrival_airport_code" maxlength="3" required/>
+				</div>
+                <input type="submit" value="Add" style="width: 50%; height: 2rem;" />
+            </form>
+			
+			{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+			{% endif %}
+			{% if status %}
+			<p class="status"><strong>Status:</strong> {{status}}</p>
+			{% endif %}
+		</div>
+	</div>
+</body>
+</html>
