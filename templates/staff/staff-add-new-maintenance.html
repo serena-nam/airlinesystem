@@ -22,24 +22,16 @@
 				style="width: 50vw; margin: 0 auto;"
 			>
 				<div style="display: grid; gap: 0.5rem; grid-template-columns: repeat(2, auto);">
-					<label for="airline_name">Airline Name</label>
-					<input type="text" name="airline_name" maxlength="20" required/>
 					<label for="airplane_ID">Airplane ID</label>
-					<input type="text" name="airplane_ID" maxlength="20" required/>
-					<label for="flight_num">Flight Number</label>
-					<input type="text" name="flight_num" maxlength="10" required/>
-					<label for="departure_date_time">Departure</label>
-					<input type="datetime-local" name="departure_date_time" required/>
-					<label for="arrival_date_time">Arrival</label>
-					<input type="datetime-local" name="arrival_date_time" required/>
-					<label for="base_ticket_price">Base Ticket Price</label>
-					<input type="number" name="base_ticket_price" required/>
-					<label for="flight_status">Flight Status</label>
-					<input type="text" name="flight_status" maxlength="20" required/>
-					<label for="departure_airport_code">Departure Airport Code</label>
-					<input type="text" name="departure_airport_code" maxlength="3" required/>
-					<label for="arrival_airport_code">Arrival Airport Code</label>
-					<input type="text" name="arrival_airport_code" maxlength="3" required/>
+					<select name="airplane_ID" required>
+						{% for airplane_ID in airplane_IDs %}
+						<option value="{{ airplane_ID }}">{{ airplane_ID }}</option>
+						{% endfor %}
+					</select>
+					<label for="start_date_time">Start</label>
+					<input type="datetime-local" name="start_date_time" required/>
+					<label for="end_date_time">End</label>
+					<input type="datetime-local" name="end_date_time" required/>
 				</div>
                 <input type="submit" value="Add" style="width: 50%; height: 2rem;" />
             </form>
@@ -50,6 +42,22 @@
 			{% if status %}
 			<p class="status"><strong>Status:</strong> {{status}}</p>
 			{% endif %}
+
+			<h2>Current Maintenance</h2>
+			<table>
+				<tr>
+					<th>Airplane ID</th>
+					<th>Start</th>
+					<th>End</th>
+				</tr>
+				{% for maintenance in maintenances %}
+				<tr>
+					<td>{{maintenance.airplane_ID}}</td>
+					<td>{{maintenance.start_date_time}}</td>
+					<td>{{maintenance.end_date_time}}</td>
+				</tr>
+				{% endfor %}
+			</table>
 		</div>
 	</div>
 </body>

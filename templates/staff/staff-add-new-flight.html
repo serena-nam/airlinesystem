@@ -37,7 +37,11 @@
 					<label for="base_ticket_price">Base Ticket Price</label>
 					<input type="number" name="base_ticket_price" required/>
 					<label for="flight_status">Flight Status</label>
-					<input type="text" name="flight_status" maxlength="20" required/>
+					<select name="flight_status">
+						<option value="delayed">delayed</option>
+						<option value="on time">on time</option>
+						<option value="cancelled">cancelled</option>
+					</select>
 					<label for="departure_airport_code">Departure Airport Code</label>
 					<select name="departure_airport_code">
 						{% for airport in airports %}

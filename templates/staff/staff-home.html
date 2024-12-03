@@ -11,10 +11,9 @@
 		<div class="home-container"> 
 			<a href="/staff-home"> Staff Home </a>
 		</div>
+		<a href="/logout">Logout</a>
 	</nav>
 
-	<h1>Welcome {{first_name}}</h1>
-	
 	<div class="cust-home-container">
 		<div class="my-flights-container">
 			<h2> Flights </h2>
@@ -24,8 +23,17 @@
 			<a href="/staff-add-new-airplane">
 				<button style="padding: 0.5rem 1.5rem">Add New Airplane</button>
 			</a>
+			<a href="/staff-add-new-maintenance">
+				<button style="padding: 0.5rem 1.5rem">Add New Maintenance</button>
+			</a>
 			<a href="/staff-add-new-flight">
 				<button style="padding: 0.5rem 1.5rem">Add New Flight</button>
+			</a>
+			<a href="/staff-customer-lookup">
+				<button style="padding: 0.5rem 1.5rem">Customer Lookup</button>
+			</a>
+			<a href="/staff-revenue">
+				<button style="padding: 0.5rem 1.5rem">View Revenue</button>
 			</a>
             <form action="/staff-home" method="POST">
                 <div>
@@ -54,10 +62,12 @@
 							<th>Departure Date Time</th>
 							<th>Arrival Date Time</th>
 							<th>Flight Status</th>
-							<th>Departure Airport Code</th>
-							<th>Arrival Airport Code</th>
+							<th>Change Status</th>
+							<th>From</th>
+							<th>To</th>
 							<!-- <th>Base Ticket Price</th> -->
-							<th>Customers</th>
+							<th>Avg Rating</th>
+							<th>Customers and Reviews</th>
 						</tr>
 					</thead>
 					{% for flight in flights %}
@@ -68,11 +78,19 @@
 						<td>{{ flight.departure_date_time }}</td>
 						<td>{{ flight.arrival_date_time }}</td>
 						<td>{{ flight.flight_status }}</td>
+						<td>
+							<a href="/staff-change-flight-status?airline_name={{flight.airline_name}}&airplane_ID={{flight.airplane_ID}}&flight_num={{flight.flight_num}}&departure_date_time={{flight.departure_date_time}}">
+								<button>Change</button>
+							</a>
+						</td>
 						<td>{{ flight.departure_airport_code }}</td>
 						<td>{{ flight.arrival_airport_code }}</td>
+						<td>{{ flight.avg_rating }}</td>
 						<!-- <td>{{ flight.base_ticket_price }}</td> -->
 						<td>
-							<a href="/staff-customers-on-flight?airline_name={{flight.airline_name}}&airplane_ID={{flight.airplane_ID}}&flight_num={{flight.flight_num}}&departure_date_time={{flight.departure_date_time}}">View</a>
+							<a href="/staff-customers-on-flight?airline_name={{flight.airline_name}}&airplane_ID={{flight.airplane_ID}}&flight_num={{flight.flight_num}}&departure_date_time={{flight.departure_date_time}}">
+								<button>View</button>
+							</a>
 						</td>
 					</tr>
 					{% endfor %}

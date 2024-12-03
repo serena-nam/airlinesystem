@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	<title> Staff Home </title>
+</head>
+<body>
+	<nav class="navbar">
+		<div class="home-container"> 
+			<a href="/staff-home"> Staff Home </a>
+		</div>
+	</nav>
+
+	<div style="display: flex; flex-direction: column; gap: 1rem; padding: 0 4rem">
+		<h2>Ticket Revenue</h2>
+		<table style="margin: 0 auto; width: 20rem">
+			<tbody>
+				<thead>
+					<tr>
+						<th>Last 30 days</th>
+						<th>Last year</th>
+					</tr>
+				</thead>
+				<tr>
+					<td>${{ revenue_month }}</td>
+					<td>${{ revenue_year }}</td>
+				</tr>
+			</tbody>
+		</table>
+		
+		<h4>Last 12 months</h2>
+		<table style="margin: 0 auto; width: 20rem">
+			<tbody>
+				<thead>
+					<tr>
+						<th>Month</th>
+						<th>Tickets sold</th>
+						<th>Ticket revenue</th>
+					</tr>
+				</thead>
+				{% for month in tickets_by_month %}
+					<tr>
+						<td>{{ month.month }}</td>
+						<td>{{ month.tickets }}</td>
+						<td>{{ month.revenue }}</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		
+		{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+		{% endif %}
+	</div>
+</body>
+</html>

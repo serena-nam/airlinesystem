@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	<title> Staff Home </title>
+</head>
+<body>
+	<nav class="navbar">
+		<div class="home-container"> 
+			<a href="/staff-home"> Staff Home </a>
+		</div>
+	</nav>
+
+	<h1>Welcome {{first_name}}</h1>
+	
+	<div class="cust-home-container">
+		<div class="my-flights-container">
+			<h2>Change Flight Status</h2>
+			<table>
+				<tbody>
+					<thead>
+						<tr>
+							<th>Airline Name</th>
+							<th>Airplane ID</th>
+							<th>Flight Number</th>
+							<th>Departure Date Time</th>
+							<th>Arrival Date Time</th>
+							<th>Flight Status</th>
+							<th>Departure Airport Code</th>
+							<th>Arrival Airport Code</th>
+							<!-- <th>Base Ticket Price</th> -->
+							<th>Customers</th>
+						</tr>
+					</thead>
+					<tr>
+						<td>{{ flight.airline_name }}</td>
+						<td>{{ flight.airplane_ID }}</td>
+						<td>{{ flight.flight_num }}</td>
+						<td>{{ flight.departure_date_time }}</td>
+						<td>{{ flight.arrival_date_time }}</td>
+						<td>{{ flight.flight_status }}</td>
+						<td>{{ flight.departure_airport_code }}</td>
+						<td>{{ flight.arrival_airport_code }}</td>
+						<!-- <td>{{ flight.base_ticket_price }}</td> -->
+						<td>
+							<a href="/staff-customers-on-flight?airline_name={{flight.airline_name}}&airplane_ID={{flight.airplane_ID}}&flight_num={{flight.flight_num}}&departure_date_time={{flight.departure_date_time}}">View</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+            <form action="/staff-change-flight-status?airline_name={{flight.airline_name}}&airplane_ID={{flight.airplane_ID}}&flight_num={{flight.flight_num}}&departure_date_time={{flight.departure_date_time}}" method="POST"
+				style="width: 50vw; margin: 0 auto;"
+			>
+				<div style="display: grid; gap: 0.5rem; grid-template-columns: repeat(2, auto);">
+					<label for="new_status">New status</label>
+					<select name="new_status">
+						<option value="delayed">delayed</option>
+						<option value="on time">on time</option>
+						<option value="cancelled">cancelled</option>
+					</select>
+				</div>
+                <input type="submit" value="Update" style="width: 50%; height: 2rem;" />
+            </form>
+			
+			{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+			{% endif %}
+			{% if status %}
+			<p class="status"><strong>Status:</strong> {{status}}</p>
+			{% endif %}
+		</div>
+	</div>
+</body>
+</html>

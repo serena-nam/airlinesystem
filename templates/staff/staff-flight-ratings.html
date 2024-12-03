@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	<title> Staff Home </title>
+</head>
+<body>
+	<nav class="navbar">
+		<div class="home-container"> 
+			<a href="/staff-home"> Staff Home </a>
+		</div>
+	</nav>
+
+	<h1>Welcome {{first_name}}</h1>
+
+	<a href="/staff-home">< Back</a>
+	<div class="cust-home-container">
+		<div class="my-flights-container">
+			<h2> Ratings </h2>
+			<table>
+				<tbody>
+					<thead>
+						<tr>
+							<th>First Name</th>
+							<th>Last Name</th>
+							<th>Email</th>
+							<th>Rating</th>
+							<th>Comment</th>
+						</tr>
+					</thead>
+					{% for review in reviews %}
+					<tr>
+						<td>{{ review.first_name }}</td>
+						<td>{{ review.last_name }}</td>
+						<td>{{ review.email }}</td>
+						<td>{{ review.rating }}</td>
+						<td>{{ review.comment }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			
+			{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+			{% endif %}
+		</div>
+	</div>
+</body>
+</html>
