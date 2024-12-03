@@ -255,7 +255,7 @@ def staffRegister():
 @app.route('/staff-home', methods=['GET', 'POST'])
 def staffHome():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+		return render_template('/no-access.html', role=session['role'])
 	if request.method == 'POST':
 		departure_airport_code = request.form.get('departure_airport_code')
 		arrival_airport_code = request.form.get('arrival_airport_code')
@@ -270,6 +270,8 @@ def staffHome():
 		date_range_end = (datetime.date.today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d')
   
 	(status, data) = filterFlights("", departure_airport_code, arrival_airport_code, date_range_begin, date_range_end)
+	if not session['airline']:
+		data = []
 	if status:
 		return render_template('staff/staff-home.html', flights=data, departure_airport_code=departure_airport_code, arrival_airport_code=arrival_airport_code, date_range_begin=date_range_begin, date_range_end=date_range_end)
 	else:
@@ -277,8 +279,8 @@ def staffHome():
 
 @app.route('/staff-customers-on-flight')
 def staffCustomersOnFlight():
-	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+	if (not session) or (not session['airline']) or(session['role'] != 'staff'):
+		return render_template('/no-access.html', role=session['role'])
 	airline_name = request.args.get('airline_name')
 	airplane_ID = request.args.get('airplane_ID')
 	flight_num = request.args.get('flight_num')
@@ -316,8 +318,8 @@ def staffCustomersOnFlight():
 
 @app.route('/staff-revenue', methods=['GET'])
 def staffRevenue():
-	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+	if (not session) or (not session['airline']) or (session['role'] != 'staff'):
+		return render_template('/no-access.html', role=session['role'])
 
 	today_minus_1mo = (datetime.date.today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
 	today_minus_1yr = (datetime.date.today() - datetime.timedelta(days=365)).strftime('%Y-%m-%d')
@@ -369,8 +371,8 @@ def staffRevenue():
 
 @app.route('/staff-add-new-airport', methods=["GET", "POST"])
 def staffAddNewAirport():
-	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+	if (not session) or (not session['airline']) or (session['role'] != 'staff'):
+		return render_template('/no-access.html', role=session['role'])
 	if request.method == "POST":
 		airport_code = request.form.get('airport_code').upper()
 		name = request.form.get('name')
@@ -400,8 +402,8 @@ def staffAddNewAirport():
 
 @app.route('/staff-add-new-airplane', methods=["GET", "POST"])
 def staffAddNewAirplane():
-	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+	if (not session) or (not session['airline']) or (session['role'] != 'staff'):
+		return render_template('/no-access.html', role=session['role'])
 
 	cursor = conn.cursor()
  
@@ -442,8 +444,8 @@ def staffAddNewAirplane():
 
 @app.route('/staff-add-new-maintenance', methods=["GET", "POST"])
 def staffAddNewMaintenance():
-	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+	if (not session) or (not session['airline']) or (session['role'] != 'staff'):
+		return render_template('/no-access.html', role=session['role'])
 
 	cursor = conn.cursor()
 
@@ -514,8 +516,8 @@ def staffAddNewMaintenance():
 
 @app.route('/staff-add-new-flight', methods=["GET", "POST"])
 def staffAddNewFlight():
-	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+	if (not session) or (not session['airline']) or (session['role'] != 'staff'):
+		return render_template('/no-access.html', role=session['role'])
 
 	cursor = conn.cursor()
  
@@ -592,8 +594,8 @@ def staffAddNewFlight():
 	
 @app.route('/staff-change-flight-status', methods=['GET', 'POST'])
 def staffChangeFlightStatus():
-	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+	if (not session) or (not session['airline']) or (session['role'] != 'staff'):
+		return render_template('/no-access.html', role=session['role'])
 
 	airline_name = request.args.get('airline_name')
 	airplane_ID = request.args.get('airplane_ID')
@@ -648,8 +650,8 @@ def staffChangeFlightStatus():
 
 @app.route('/staff-customer-lookup', methods=["GET", "POST"])
 def staffCustomerLookup():
-	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+	if (not session) or (not session['airline']) or (session['role'] != 'staff'):
+		return render_template('/no-access.html', role=session['role'])
 
 	cursor = conn.cursor()
  
@@ -717,10 +719,13 @@ def staffLoginAuth():
 		cursor = conn.cursor()
 		query = 'SELECT airline_name FROM works WHERE username = %s'
 		cursor.execute(query, (username))
-		user_airline = cursor.fetchone()['airline_name']
+		user_airline = cursor.fetchone()
+		if user_airline:
+			session['airline'] = user_airline['airline_name']
+		else:
+			session['airline'] = None
 		cursor.close()
-		session['airline'] = user_airline
-
+		app.logger.debug(session)
 		return redirect(url_for('staffHome'))
 	else:
 		#returns an error message to the html page
@@ -747,7 +752,7 @@ def staffRegisterAuth():
 	if(data):
 		#If the previous query returns data, then user exists
 		error = "This username already exists"
-		return render_template('customer/customer-register.html', error = error)
+		return render_template('staff/staff-register.html', error = error)
 	else:
 		insert_q = 'INSERT INTO AirlineStaff VALUES(%s, %s, %s, %s, %s)'
 		cursor.execute(insert_q, (username, md5(password.encode()).hexdigest(), fname, lname, dob))
