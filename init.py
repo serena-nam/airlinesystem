@@ -35,7 +35,6 @@ def filterFlights(airline_name, departure_airport_code, arrival_airport_code, da
 	if query.strip().split(' ')[-1] == 'and' or query.strip().split(' ')[-1] == 'WHERE':
 		query = ' '.join(query.strip().split(' ')[:-1])
 	query += ' ORDER BY departure_date_time DESC'
-	app.logger.debug(query)
 	cursor.execute(query)
 	
 	data = cursor.fetchall()
@@ -43,7 +42,6 @@ def filterFlights(airline_name, departure_airport_code, arrival_airport_code, da
 
 	#error message if no flights are found
 	error = 'No Matching Flights'
-	app.logger.info(data)
 	if data:
 		return (1, data)
 	else:
@@ -80,7 +78,6 @@ def custHome():
 	data = cursor.fetchall()
 	cursor.close()
 	error = 'No Upcoming Flights'
-	app.logger.info(data)
 	
 	if data:
 		return render_template("customer/customer-home.html", flights=data, name=name, email=email)
@@ -168,7 +165,6 @@ def findFlights():
 	#error message if no flights are found
 	error = 'No Matching Flights'
 
-	app.logger.info(data)
 	if data:
 		return render_template("home.html", findFlights=data)
 	else:
@@ -205,7 +201,6 @@ def checkStatus():
 	#error message if no flights are found
 	error = 'No Matching Flights'
 
-	app.logger.info(data)
 	if data:
 		return render_template("home.html", checkFlights=data)
 	else:
@@ -348,26 +343,30 @@ def staffLogin():
 
 @app.route('/staff-register')
 def staffRegister():
-	return render_template('staff/staff-register.html')
+	cursor = conn.cursor()
+	query = 'SELECT * FROM Airline'
+	cursor.execute(query)
+	airlines = cursor.fetchall()
+	cursor.close()
+	return render_template('staff/staff-register.html', airlines=airlines)
 
 @app.route('/staff-home', methods=['GET', 'POST'])
 def staffHome():
+	app.logger.debug(session)
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+		return render_template('/no-access.html', role=session['role'])
 	if request.method == 'POST':
 		departure_airport_code = request.form.get('departure_airport_code')
 		arrival_airport_code = request.form.get('arrival_airport_code')
 		date_range_begin = request.form.get('date_range_begin')
 		date_range_end = request.form.get('date_range_end')
-		app.logger.debug(departure_airport_code, arrival_airport_code)
-
 	else:
 		departure_airport_code = ''
 		arrival_airport_code = ''
 		date_range_begin = datetime.date.today().strftime('%Y-%m-%d')
 		date_range_end = (datetime.date.today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d')
   
-	(status, data) = filterFlights("", departure_airport_code, arrival_airport_code, date_range_begin, date_range_end)
+	(status, data) = filterFlights(session['airline'], departure_airport_code, arrival_airport_code, date_range_begin, date_range_end)
 	if status:
 		return render_template('staff/staff-home.html', flights=data, departure_airport_code=departure_airport_code, arrival_airport_code=arrival_airport_code, date_range_begin=date_range_begin, date_range_end=date_range_end)
 	else:
@@ -375,8 +374,8 @@ def staffHome():
 
 @app.route('/staff-customers-on-flight')
 def staffCustomersOnFlight():
-	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+	if (not session) or(session['role'] != 'staff'):
+		return render_template('/no-access.html', role=session['role'])
 	airline_name = request.args.get('airline_name')
 	airplane_ID = request.args.get('airplane_ID')
 	flight_num = request.args.get('flight_num')
@@ -391,7 +390,6 @@ def staffCustomersOnFlight():
 			departure_date_time = "{departure_date_time}"
 	)
 	'''
-	app.logger.debug(query)
 	cursor.execute(query)
 	customers = cursor.fetchall()
 	
@@ -403,7 +401,6 @@ def staffCustomersOnFlight():
 		departure_date_time = "{departure_date_time}"
 		ORDER BY rating DESC
 	'''
-	app.logger.debug(query)
 	cursor.execute(query)
 	reviews = cursor.fetchall()
  
@@ -415,7 +412,7 @@ def staffCustomersOnFlight():
 @app.route('/staff-revenue', methods=['GET'])
 def staffRevenue():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+		return render_template('/no-access.html', role=session['role'])
 
 	today_minus_1mo = (datetime.date.today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
 	today_minus_1yr = (datetime.date.today() - datetime.timedelta(days=365)).strftime('%Y-%m-%d')
@@ -458,8 +455,6 @@ def staffRevenue():
 	tickets_by_month = sorted(tickets_by_month, key=lambda x: month_indices.index(x['month']))
 	tickets_by_month = [{'month': month_names[t['month']-1], 'tickets': t['tickets'], 'revenue': t['revenue']} for t in tickets_by_month]
  
-	app.logger.debug(tickets_by_month)
- 
 	cursor.close()
 	return render_template('staff/staff-revenue.html', revenue_month=revenue_month, revenue_year=revenue_year, tickets_by_month=tickets_by_month)
 
@@ -468,7 +463,7 @@ def staffRevenue():
 @app.route('/staff-add-new-airport', methods=["GET", "POST"])
 def staffAddNewAirport():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+		return render_template('/no-access.html', role=session['role'])
 	if request.method == "POST":
 		airport_code = request.form.get('airport_code').upper()
 		name = request.form.get('name')
@@ -481,11 +476,9 @@ def staffAddNewAirport():
 		query = f'''INSERT INTO Airport VALUES (
 			"{airport_code}", "{name}", "{city}", "{country}", {num_terminals}, "{airport_type}"
 		)'''
-		app.logger.debug(query)
 		try:
 			cursor.execute(query)
 			data = cursor.fetchone()
-			app.logger.debug(data)
 			conn.commit()
 			cursor.close()
 			return render_template('staff/staff-add-new-airport.html', status="Success")
@@ -499,13 +492,12 @@ def staffAddNewAirport():
 @app.route('/staff-add-new-airplane', methods=["GET", "POST"])
 def staffAddNewAirplane():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+		return render_template('/no-access.html', role=session['role'])
 
 	cursor = conn.cursor()
  
 	# query = "SELECT * FROM Airplane WHERE airline_name=%s"
 	cursor.execute(f'SELECT * FROM Airplane WHERE airline_name="{session["airline"]}"')
-	# app.logger.debug(query)
 	airplanes = cursor.fetchall()
 	
 	if request.method == "POST":
@@ -519,11 +511,9 @@ def staffAddNewAirplane():
 		query = f'''INSERT INTO Airplane VALUES (
 			"{airline_name}", "{airplane_ID}", {num_seats}, "{manufacturing_company}", "{model_num}", "{manufacture_date}"
 		)'''
-		app.logger.debug(query)
 		try:
 			cursor.execute(query)
 			data = cursor.fetchone()
-			app.logger.debug(data)
 			conn.commit()
 			
 			cursor.execute(f'SELECT * FROM Airplane WHERE airline_name="{session["airline"]}"')
@@ -541,7 +531,7 @@ def staffAddNewAirplane():
 @app.route('/staff-add-new-maintenance', methods=["GET", "POST"])
 def staffAddNewMaintenance():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+		return render_template('/no-access.html', role=session['role'])
 
 	cursor = conn.cursor()
 
@@ -591,11 +581,9 @@ def staffAddNewMaintenance():
 			query = f'''INSERT INTO Maintenance VALUES (
 				"{airline_name}", "{airplane_ID}", "{start_date_time}", "{end_date_time}"
 			)'''
-			app.logger.debug(query)
    
 			cursor.execute(query)
 			data = cursor.fetchone()
-			app.logger.debug(data)
 			conn.commit()
 						
 			cursor.execute(f'SELECT * FROM Maintenance WHERE airline_name="{session["airline"]}"')
@@ -613,7 +601,7 @@ def staffAddNewMaintenance():
 @app.route('/staff-add-new-flight', methods=["GET", "POST"])
 def staffAddNewFlight():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+		return render_template('/no-access.html', role=session['role'])
 
 	cursor = conn.cursor()
  
@@ -626,7 +614,6 @@ def staffAddNewFlight():
 	cursor.execute("SELECT airplane_ID FROM Airplane WHERE airline_name=%s", (session["airline"]))
 	airplanes = cursor.fetchall()
 	airplane_IDs = [ airplane["airplane_ID"] for airplane in airplanes ]
-	app.logger.debug(airplane_IDs)
 	cursor.execute("SELECT airport_code FROM Airport")
 	airports = cursor.fetchall()
 	airports = [airport["airport_code"] for airport in airports]
@@ -669,9 +656,8 @@ def staffAddNewFlight():
 			'''
 			cursor.execute(query)
 			flight_conflicts = cursor.fetchall()
-			app.logger.debug(flight_conflicts)
-			# if flight_conflicts != 0:
-			# 	raise Exception(f'Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}')
+			if flight_conflicts != 0:
+				raise Exception(f'Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}')
 			
 			query = '''INSERT INTO Flight VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'''
 		
@@ -691,7 +677,7 @@ def staffAddNewFlight():
 @app.route('/staff-change-flight-status', methods=['GET', 'POST'])
 def staffChangeFlightStatus():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+		return render_template('/no-access.html', role=session['role'])
 
 	airline_name = request.args.get('airline_name')
 	airplane_ID = request.args.get('airplane_ID')
@@ -704,7 +690,6 @@ def staffChangeFlightStatus():
 		flight_num="{flight_num}" and
 		departure_date_time="{departure_date_time}"
 	'''
-	app.logger.debug(query)
 	cursor.execute(query)
 	flight = cursor.fetchone()
  
@@ -721,7 +706,6 @@ def staffChangeFlightStatus():
 				flight_num="{flight_num}" and
 				departure_date_time="{departure_date_time}"
 			'''
-			app.logger.debug(query)
 			cursor.execute(query)
 			conn.commit()
    
@@ -732,7 +716,6 @@ def staffChangeFlightStatus():
 				flight_num="{flight_num}" and
 				departure_date_time="{departure_date_time}"
 			'''
-			app.logger.debug(query)
 			cursor.execute(query)
 			flight = cursor.fetchone()
    
@@ -747,7 +730,7 @@ def staffChangeFlightStatus():
 @app.route('/staff-customer-lookup', methods=["GET", "POST"])
 def staffCustomerLookup():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html')
+		return render_template('/no-access.html', role=session['role'])
 
 	cursor = conn.cursor()
  
@@ -771,7 +754,6 @@ def staffCustomerLookup():
 	cursor.execute(queries[1])
 	frequent_customers = cursor.fetchall()
 	cursor.execute(queries[2])
-	app.logger.debug(frequent_customers)
  
 	if request.method == "POST":
 		email = request.form.get('email')
@@ -815,10 +797,13 @@ def staffLoginAuth():
 		cursor = conn.cursor()
 		query = 'SELECT airline_name FROM works WHERE username = %s'
 		cursor.execute(query, (username))
-		user_airline = cursor.fetchone()['airline_name']
+		user_airline = cursor.fetchone()
+		if user_airline:
+			session['airline'] = user_airline['airline_name']
+		else:
+			session['airline'] = None
 		cursor.close()
-		session['airline'] = user_airline
-
+		app.logger.debug(session)
 		return redirect(url_for('staffHome'))
 	else:
 		#returns an error message to the html page
@@ -834,6 +819,7 @@ def staffRegisterAuth():
 	dob = request.form['dob']
 	username = request.form['username']
 	password = request.form['password']
+	airline_name = request.form['airline']
 	email = request.form['email']
 	phone = request.form['phone']
 
@@ -845,7 +831,12 @@ def staffRegisterAuth():
 	if(data):
 		#If the previous query returns data, then user exists
 		error = "This username already exists"
-		return render_template('customer/customer-register.html', error = error)
+		cursor = conn.cursor()
+		query = 'SELECT * FROM Airline'
+		cursor.execute(query)
+		airlines = cursor.fetchall()
+		cursor.close()
+		return render_template('staff/staff-register.html', airlines=airlines, error=error)
 	else:
 		insert_q = 'INSERT INTO AirlineStaff VALUES(%s, %s, %s, %s, %s)'
 		cursor.execute(insert_q, (username, md5(password.encode()).hexdigest(), fname, lname, dob))
@@ -854,9 +845,13 @@ def staffRegisterAuth():
 		insert_email_q = 'INSERT INTO AirlineStaff_email VALUES(%s, %s)'
 		cursor.execute(insert_email_q, (username, email))
 		conn.commit()
-  
+
 		insert_phone_q = 'INSERT INTO AirlineStaff_phone VALUES(%s, %s)'
 		cursor.execute(insert_phone_q, (username, phone))
+		conn.commit()
+  
+		insert_works_q = 'INSERT INTO works VALUES(%s, %s)'
+		cursor.execute(insert_works_q, (username, airline_name))
 		conn.commit()
 		cursor.close()
 		return render_template('staff/staff-login.html')

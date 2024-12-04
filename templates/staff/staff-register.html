@@ -41,7 +41,16 @@
             <div class="register-row-container">
                 <div class="register-field-container"> 
                     <p> Username </p>
-                    <input type="username" name="username" placeholder="Username" required/> 
+                    <input type="text" name="username" placeholder="Username" required/> 
+                </div>
+                
+                <div class="register-field-container"> 
+                    <p> Airline </p>
+                    <select name="airline" style="width: 8rem" required>
+                        {% for airline in airlines %}
+                            <option value="{{airline.airline_name}}">{{airline.airline_name}}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 
                 <div class="register-field-container"> 
