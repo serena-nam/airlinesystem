@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	<title> Find Flights </title>
+</head>
+<body>
+    <div class="flights-page-container">
+        <nav class="navbar">
+            <div class="home-container"> 
+                <a href="/customer-home"> Home </a>
+            </div>
+            <div class="login-container">
+                <a href="/customer-find-flights"> Find Flights </a>
+                <a href="/"> Track Spending </a>
+    
+                <a href="/logout"> Logout </a>
+            </div>
+            
+        </nav>
+
+        <h1> Search Flights </h1>
+        <div class="flight-search-container"> 
+            <h1>Find Flights</h1>
+            <form class="search-container" action="/findOpenFlights" method="POST">
+                <div class="search-field-container"> 
+                    <h3> Origin </h3>
+                    <input type="text" name="departure_airport_code" placeholder="Select origin" required/>
+                </div>
+                
+                <div class="search-field-container"> 
+                    <h3> Destination </h3>
+                    <input type="text" name="arrival_airport_code" placeholder="Select destination" required/> 
+                </div>
+                
+                <div class="search-field-container"> 
+                    <h3> Departure</h3>
+                    <input type="date" name="departure_date" required/> 
+                </div>
+                
+                <div class="search-field-container"> 
+                    <h3> Return </h3>
+                    <input type="date" name="return_date"/> 
+                </div>
+                
+                <div class="search-button-container"> 
+                    <input type="submit" value = Search />
+                </div>
+            </form>
+            
+        </div>
+
+        {% for flight in findFlights %}
+        <table>
+            <tbody>
+                
+                    <thead>
+                        <tr>
+                            <th>Airline Name</th>
+                            <th>Airplane ID</th>
+                            <th>Flight Number</th>
+                            <th>Departure Date Time</th>
+                            <th>Arrival Date Time</th>
+                            <th>Base Ticket Price</th>
+                            <th>Flight Status</th>
+                            <th>Departure Airport Code</th>
+                            <th>Arrival Airport Code</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>{{ flight.airline_name }}</td>
+                        <td>{{ flight.airplane_ID }}</td>
+                        <td>{{ flight.flight_num }}</td>
+                        <td>{{ flight.departure_date_time }}</td>
+                        <td>{{ flight.arrival_date_time }}</td>
+                        <td>{{ flight.base_ticket_price }}</td>
+                        <td>{{ flight.flight_status }}</td>
+                        <td>{{ flight.departure_airport_code }}</td>
+                        <td>{{ flight.arrival_airport_code }}</td>
+                        <td>
+                            <form action="/customer-purchase-ticket" method="POST">
+                                <input type="hidden" name="flight_num" value="{{ flight.flight_num }}">
+                                <input type="hidden" name="airline_name" value="{{ flight.airline_name }}">
+                                <input type="hidden" name="airplane_id" value="{{ flight.airplane_ID }}">
+                                <input type="hidden" name="departure_date_time" value="{{ flight.departure_date_time }}">
+                                <input type="hidden" name="ticket_price" value="{{ flight.base_ticket_price }}">
+                                <input type="submit" value="Purchase">
+                            </form>
+                        </td>
+                    </tr>
+                
+            </tbody>
+        </table>
+
+        
+        {% endfor %}
+
+        {% if error %}
+		    <p class="error"><strong>Error:</strong> {{error}}</p>
+	    {% endif %}
+    </div>
+</body>
+</html>

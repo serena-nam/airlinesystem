@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+    <title> Purchase Ticket </title>
+</head>
+<body>
+    <div class="customer-register-page-container">
+        <nav class="navbar">
+            <div class="home-container"> 
+                <a href="/customer-home"> Home </a>
+            </div>
+            <div class="login-container">
+                <a href="/customer-find-flights"> Find Flights </a>
+                <a href="/"> Track Spending </a>
+                
+                <a href="/logout"> Logout </a>
+            </div>
+            
+        </nav>
+        
+        <h1> Purchase Ticket </h1>
+        <form class="customer-register-container" action="/purchaseTicket" method="POST">
+            <h3> Personal Details </h3>
+            <div class="register-row-container">
+                <div class="register-field-container"> 
+                    <p> First Name </p>
+                    <input type="text" name="fname" placeholder="First Name" required/> 
+                </div>
+                
+                <div class="register-field-container"> 
+                    <p> Last Name </p>
+                    <input type="text" name="lname" placeholder="Last Name" required/> 
+                </div>
+                
+                <div class="register-field-container"> 
+                    <p> Date of Birth </p>
+                    <input type="date" name="dob" required/> 
+                </div>
+            </div>
+            
+            <h3> Card Details </h3>
+            <div class="register-row-container">
+                <div class="register-field-container"> 
+                    <p> Type </p>
+                    <input type="text" name="cardType" placeholder="Card Type" required/> 
+                </div>
+                
+                <div class="register-field-container"> 
+                    <p> Number </p>
+                    <input type="number" name="cardNum" placeholder="Card #" required/> 
+                </div>
+                
+                <div class="register-field-container"> 
+                    <p> Name </p>
+                    <input type="text" name="cardName" placeholder="Name on Card"/> 
+                </div>   
+                
+                <div class="register-field-container"> 
+                    <p> Expiration Date </p>
+                    <input type="date" name="expirationDate" required/> 
+                </div>
+                
+                
+            </div>
+            
+            {% if flight %}
+            <p> {{flight['ticket_price']}} </p>
+            <input type="hidden" name="flight_num" value="{{ flight['flight_num'] }}">
+            <input type="hidden" name="airline_name" value="{{ flight['airline_name'] }}">
+            <input type="hidden" name="airplane_id" value="{{ flight['airplane_id'] }}">
+            <input type="hidden" name="departure_date_time" value="{{ flight['departure_date_time'] }}">
+            <input type="hidden" name="ticket_price" value="{{ flight['ticket_price'] }}">
+            {% else %}
+            <p>No flight data provided.</p>
+            {% endif %}
+            <div class="register-button-container"> 
+                <input type="submit" value = "Confirm Purchase" />
+            </div>
+        </form>
+        
+        {% if error %}
+        <p class="error"><strong>Error:</strong> {{error}}</p>
+        {% endif %}
+        
+    </div>
+</body>
+</html>

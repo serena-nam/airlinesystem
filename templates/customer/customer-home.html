@@ -12,7 +12,7 @@
 			<a href="/customer-home"> Home </a>
 		</div>
 		<div class="login-container">
-			<a href="/"> Find Flights </a>
+			<a href="/customer-find-flights"> Find Flights </a>
 			<a href="/"> Track Spending </a>
 
 			<a href="/logout"> Logout </a>
@@ -20,7 +20,9 @@
 		
 	</nav>
 
+
 	<h1>Welcome {{name}}</h1>
+	<p> {{email}} </p>
 	
 	<div class="cust-home-container">
 		
@@ -37,10 +39,10 @@
 							<th>Flight Number</th>
 							<th>Departure Date Time</th>
 							<th>Arrival Date Time</th>
-							<!-- <th>Base Ticket Price</th>
+							<th>Base Ticket Price</th>
 							<th>Flight Status</th>
 							<th>Departure Airport Code</th>
-							<th>Arrival Airport Code</th> -->
+							<th>Arrival Airport Code</th>
 						</tr>
 					</thead>
 					<tr>
@@ -49,10 +51,10 @@
 						<td>{{ flight.flight_num }}</td>
 						<td>{{ flight.departure_date_time }}</td>
 						<td>{{ flight.arrival_date_time }}</td>
-						<!-- <td>{{ flight.base_ticket_price }}</td>
+						<td>{{ flight.base_ticket_price }}</td>
 						<td>{{ flight.flight_status }}</td>
 						<td>{{ flight.departure_airport_code }}</td>
-						<td>{{ flight.arrival_airport_code }}</td> -->
+						<td>{{ flight.arrival_airport_code }}</td>
 					</tr>
 					
 				</tbody>

@@ -74,7 +74,8 @@ def custHome():
 	curDate = datetime.date.today()
 	cursor = conn.cursor()
 
-	query = 'SELECT airline_name, airplane_ID, flight_num, departure_date_time, arrival_date_time FROM Customer NATURAL JOIN Flight WHERE email=%s and departure_date_time < %s'
+	query = 'SELECT * FROM Customer NATURAL JOIN Flight WHERE email=%s and departure_date_time > %s'
+	print(f"Current session user: {session.get('username')}")
 	cursor.execute(query, (email, curDate))
 	data = cursor.fetchall()
 	cursor.close()
@@ -82,10 +83,55 @@ def custHome():
 	app.logger.info(data)
 	
 	if data:
-		return render_template("customer/customer-home.html", flights=data, name=name)
+		return render_template("customer/customer-home.html", flights=data, name=name, email=email)
 	else:
-		return render_template("customer/customer-home.html", error=error)
+		return render_template("customer/customer-home.html", error=error, name=name, email=email)
 
+
+@app.route('/customer-find-flights') 
+def customerFindFlights():
+	return render_template('customer/customer-find-flights.html')
+
+#finds flights for search in home page
+@app.route('/findOpenFlights', methods=['POST'])
+def findOpenFlights():
+	#grabs information from the forms
+	departure_airport_code = request.form.get('departure_airport_code')
+	arrival_airport_code = request.form.get('arrival_airport_code')
+	departure_date = request.form.get('departure_date')
+	return_date = request.form.get('return_date')
+ 
+	#cursor used to send queries only show queries where tickets can be purchased, show ticket price as adjusted
+	cursor = conn.cursor()
+	#executes query
+	if(return_date):
+		query = '''SELECT * FROM Flight WHERE 
+ 		departure_airport_code = %s and
+   		arrival_airport_code = %s and
+		DATE(arrival_date_time) = %s'''
+		cursor.execute(query, (departure_airport_code, arrival_airport_code, return_date))
+	else:
+		query = '''SELECT * FROM Flight WHERE 
+ 		departure_airport_code = %s and
+   		arrival_airport_code = %s and
+		departure_date_time >= %s
+	 	'''
+		cursor.execute(query, (departure_airport_code, arrival_airport_code, departure_date))
+	
+	#stores the results in a variable
+	data = cursor.fetchall()
+	#use fetchall() if you are expecting more than 1 data row
+	cursor.close()
+	error = None
+
+	#error message if no flights are found
+	error = 'No Matching Flights'
+
+	app.logger.info(data)
+	if data:
+		return render_template('customer/customer-find-flights.html', findFlights=data)
+	else:
+		return render_template('customer/customer-find-flights.html', error=error)
 
 #finds flights for search in home page
 @app.route('/findFlights', methods=['POST'])
@@ -176,7 +222,7 @@ def custLoginAuth():
 	cursor = conn.cursor()
 	#executes query
 	query = 'SELECT * FROM customer WHERE email = %s and password = %s'
-	cursor.execute(query, (email, password))
+	cursor.execute(query, (email, md5(password.encode()).hexdigest()))
 	#stores the results in a variable
 	data = cursor.fetchone()
 	#use fetchall() if you are expecting more than 1 data row
@@ -188,6 +234,7 @@ def custLoginAuth():
 		session['username'] = email
 		first_name = data['first_name']
 		session['first_name'] = first_name
+		session['role'] = 'customer'
 
 		return redirect(url_for('custHome'))
 	else:
@@ -234,7 +281,7 @@ def custRegisterAuth():
 		return render_template('customer/customer-register.html', error = error)
 	else:
 		ins = 'INSERT INTO customer VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-		cursor.execute(ins, (fname, lname, email, password, building, street, apt, city, state, zipcode, passport, expiration, country, dob))
+		cursor.execute(ins, (fname, lname, email, md5(password.encode()).hexdigest(), building, street, apt, city, state, zipcode, passport, expiration, country, dob))
 		conn.commit()
 
 		insPhone = 'INSERT INTO customer_phone VALUES(%s, %s)'
@@ -242,6 +289,57 @@ def custRegisterAuth():
 		conn.commit()
 		cursor.close()
 		return render_template('customer/customer-login.html')
+
+@app.route('/customer-purchase-ticket', methods=['GET', 'POST'])
+def customerPurchase():
+	cursor = conn.cursor()
+	return render_template('/customer/customer-purchase.html', flight=request.form)
+
+@app.route('/purchaseTicket', methods=['GET', 'POST'])
+def purchaseTicket():
+	email = session['username']
+	cursor = conn.cursor()
+
+	first_name = request.form['fname']
+	last_name = request.form['lname']
+	date_of_birth = request.form['dob']
+
+	card_type = request.form['cardType']
+	card_number = request.form['cardNum']
+	card_name = request.form['cardName']
+	card_expiration = request.form['expirationDate']
+
+	airline_name = request.form['airline_name']
+	airplane_id = request.form['airplane_id']
+	flight_num = request.form['flight_num']
+	departure_date_time = request.form['departure_date_time']
+	ticket_price = request.form['ticket_price']
+	
+	#check for unclaimed ticket
+	query = 'SELECT MAX(ticket_ID) FROM ticket NATURAL LEFT OUTER JOIN purchases where airline_name=%s and airplane_ID=%s and flight_num=%s and departure_date_time=%s and email=NULL'
+	cursor.execute(query, (airline_name, airplane_ID, flight_num, departure_date_time));
+	data = cursor.fetchone();
+	if(data):
+		ticket_id = data
+	else:
+		#create a new ticket
+		query = 'SELECT MAX(ticket_ID) as maxTicket FROM ticket where airline_name=%s and airplane_ID=%s and flight_num=%s and departure_date_time=%s'
+		cursor.execute(query, (airline_name, airplane_id, flight_num, departure_date_time))
+		conn.commit()
+		max_ticket_row = cursor.fetchone()
+		max_ticket = max_ticket_row['maxTicket'] if max_ticket_row['maxTicket'] else 0
+		ticket_id = int(max_ticket) + 1
+
+		ins = 'INSERT INTO ticket VALUES(%s, %s, %s, %s, %s)'
+		cursor.execute(ins, (ticket_id, airline_name, airplane_id, flight_num, departure_date_time))
+		conn.commit()
+
+	ins = 'INSERT INTO purchases VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+	cursor.execute(ins, (email, ticket_id, airline_name, airplane_id, flight_num, departure_date_time, first_name, last_name,
+	date_of_birth, ticket_price, card_type, card_number, card_expiration, card_name, datetime.datetime.today()))
+	conn.commit()
+
+	return redirect(url_for("custHome"))
 
 
 @app.route('/staff-login')
@@ -572,8 +670,8 @@ def staffAddNewFlight():
 			cursor.execute(query)
 			flight_conflicts = cursor.fetchall()
 			app.logger.debug(flight_conflicts)
-			if flight_conflicts != 0:
-				raise Exception(f'Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}')
+			# if flight_conflicts != 0:
+			# 	raise Exception(f'Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}')
 			
 			query = '''INSERT INTO Flight VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'''
 		
