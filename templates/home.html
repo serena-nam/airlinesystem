@@ -59,27 +59,29 @@
                 
                     <thead>
                         <tr>
-                            <th>Airline Name</th>
-                            <th>Airplane ID</th>
+                            <th>Departure Airport</th>
+                            <th>Arrival Airport</th>
                             <th>Flight Number</th>
                             <th>Departure Date Time</th>
                             <th>Arrival Date Time</th>
                             <th>Base Ticket Price</th>
+                            <th>Airline Name</th>
+                            <th>Airplane ID</th>
                             <th>Flight Status</th>
-                            <th>Departure Airport Code</th>
-                            <th>Arrival Airport Code</th>
+                            
                         </tr>
                     </thead>
                     <tr>
-                        <td>{{ flight.airline_name }}</td>
-                        <td>{{ flight.airplane_ID }}</td>
+                        <td>{{ flight.departure_airport_code }}</td>
+                        <td>{{ flight.arrival_airport_code }}</td>
                         <td>{{ flight.flight_num }}</td>
                         <td>{{ flight.departure_date_time }}</td>
                         <td>{{ flight.arrival_date_time }}</td>
                         <td>{{ flight.base_ticket_price }}</td>
+                        <td>{{ flight.airline_name }}</td>
+                        <td>{{ flight.airplane_ID }}</td>
                         <td>{{ flight.flight_status }}</td>
-                        <td>{{ flight.departure_airport_code }}</td>
-                        <td>{{ flight.arrival_airport_code }}</td>
+                        
                     </tr>
                 
             </tbody>
@@ -128,27 +130,27 @@
                 
                     <thead>
                         <tr>
-                            <th>Airline Name</th>
-                            <th>Airplane ID</th>
+                            <th>Flight Status</th>
+                            <th>Airline Name</th>                            
                             <th>Flight Number</th>
+                            <th>Departure Airport</th>
+                            <th>Arrival Airport</th>
                             <th>Departure Date Time</th>
                             <th>Arrival Date Time</th>
-                            <!-- <th>Base Ticket Price</th> -->
-                            <th>Flight Status</th>
-                            <th>Departure Airport Code</th>
-                            <th>Arrival Airport Code</th>
+                            <th>Airplane ID</th>
+                            
                         </tr>
                     </thead>
                     <tr>
-                        <td>{{ flight.airline_name }}</td>
-                        <td>{{ flight.airplane_ID }}</td>
-                        <td>{{ flight.flight_num }}</td>
-                        <td>{{ flight.departure_date_time }}</td>
-                        <td>{{ flight.arrival_date_time }}</td>
-                        <!-- <td>{{ flight.base_ticket_price }}</td> -->
                         <td>{{ flight.flight_status }}</td>
+                        <td>{{ flight.airline_name }}</td>
+                        <td>{{ flight.flight_num }}</td>
                         <td>{{ flight.departure_airport_code }}</td>
                         <td>{{ flight.arrival_airport_code }}</td>
+                        <td>{{ flight.departure_date_time }}</td>
+                        <td>{{ flight.arrival_date_time }}</td>
+                        <td>{{ flight.airplane_ID }}</td>'
+                        
                     </tr>
                 
             </tbody>

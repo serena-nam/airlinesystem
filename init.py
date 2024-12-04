@@ -69,21 +69,24 @@ def custHome():
 	# email = session['email']
 	name = session['first_name']
 	email = session['username']
-	curDate = datetime.date.today()
+	curDate = datetime.datetime.now()
 	cursor = conn.cursor()
 
-	query = 'SELECT * FROM Customer NATURAL JOIN Flight WHERE email=%s and departure_date_time > %s'
+	query = '''SELECT * FROM purchases NATURAL JOIN flight 
+	WHERE email=%s and departure_date_time > %s GROUP BY airline_name, airplane_ID, flight_num, departure_date_time'''
 	print(f"Current session user: {session.get('username')}")
 	cursor.execute(query, (email, curDate))
-	data = cursor.fetchall()
-	cursor.close()
-	error = 'No Upcoming Flights'
-	
-	if data:
-		return render_template("customer/customer-home.html", flights=data, name=name, email=email)
-	else:
-		return render_template("customer/customer-home.html", error=error, name=name, email=email)
+	future_data = cursor.fetchall()
 
+	query = '''SELECT * FROM purchases NATURAL JOIN flight NATURAL LEFT OUTER JOIN reviews 
+	WHERE email=%s and arrival_date_time < %s GROUP BY airline_name, airplane_ID, flight_num, departure_date_time'''
+	cursor.execute(query, (email, curDate))
+	past_data = cursor.fetchall()
+
+	cursor.close()
+	
+	return render_template("customer/customer-home.html", future_flights=future_data, past_flights=past_data, name=name, email=email)
+	
 
 @app.route('/customer-find-flights') 
 def customerFindFlights():
@@ -102,17 +105,31 @@ def findOpenFlights():
 	cursor = conn.cursor()
 	#executes query
 	if(return_date):
-		query = '''SELECT * FROM Flight WHERE 
- 		departure_airport_code = %s and
+		query = '''SELECT airline_name, airplane_ID, flight_num, departure_date_time, arrival_date_time, 
+		departure_airport_code, arrival_airport_code, flight_status,
+		ROUND(IF (num_seats*0.8 <= num_purchased, base_ticket_price*1.25, base_ticket_price),2) as ticket_price
+		FROM (SELECT airline_name, airplane_ID, flight_num, departure_date_time, 
+		COUNT(*) as num_purchased from Purchases 
+		GROUP BY airline_name, airplane_ID, flight_num, departure_date_time) as C 
+		NATURAL JOIN Airplane NATURAL RIGHT OUTER JOIN Flight
+		WHERE departure_airport_code = %s and
    		arrival_airport_code = %s and
-		DATE(arrival_date_time) = %s'''
+		DATE(arrival_date_time) = %s
+		'''
 		cursor.execute(query, (departure_airport_code, arrival_airport_code, return_date))
 	else:
-		query = '''SELECT * FROM Flight WHERE 
- 		departure_airport_code = %s and
+		query = '''SELECT airline_name, airplane_ID, flight_num, departure_date_time, arrival_date_time, 
+		departure_airport_code, arrival_airport_code, flight_status,
+		ROUND(IF (num_seats*0.8 <= num_purchased, base_ticket_price*1.25, base_ticket_price),2) as ticket_price
+		FROM (SELECT airline_name, airplane_ID, flight_num, departure_date_time, 
+		COUNT(*) as num_purchased from Purchases 
+		GROUP BY airline_name, airplane_ID, flight_num, departure_date_time) as C 
+		NATURAL JOIN Airplane NATURAL RIGHT OUTER JOIN Flight
+		WHERE departure_airport_code = %s and
    		arrival_airport_code = %s and
-		departure_date_time >= %s
-	 	'''
+		DATE(departure_date_time) = %s
+		'''
+		
 		cursor.execute(query, (departure_airport_code, arrival_airport_code, departure_date))
 	
 	#stores the results in a variable
@@ -311,18 +328,18 @@ def purchaseTicket():
 	ticket_price = request.form['ticket_price']
 	
 	#check for unclaimed ticket
-	query = 'SELECT MAX(ticket_ID) FROM ticket NATURAL LEFT OUTER JOIN purchases where airline_name=%s and airplane_ID=%s and flight_num=%s and departure_date_time=%s and email=NULL'
-	cursor.execute(query, (airline_name, airplane_ID, flight_num, departure_date_time));
+	query = 'SELECT MAX(ticket_ID) as exist_ticket FROM ticket NATURAL LEFT OUTER JOIN purchases where airline_name=%s and airplane_ID=%s and flight_num=%s and departure_date_time=%s and email is NULL'
+	cursor.execute(query, (airline_name, airplane_id, flight_num, departure_date_time));
 	data = cursor.fetchone();
-	if(data):
-		ticket_id = data
+	if(data['exist_ticket']):
+		ticket_id = data['exist_ticket']
 	else:
-		#create a new ticket
-		query = 'SELECT MAX(ticket_ID) as maxTicket FROM ticket where airline_name=%s and airplane_ID=%s and flight_num=%s and departure_date_time=%s'
-		cursor.execute(query, (airline_name, airplane_id, flight_num, departure_date_time))
+		#create a new ticket with a new ticket_id
+		query = 'SELECT COUNT(ticket_ID) as maxTicket FROM ticket'
+		cursor.execute(query)
 		conn.commit()
-		max_ticket_row = cursor.fetchone()
-		max_ticket = max_ticket_row['maxTicket'] if max_ticket_row['maxTicket'] else 0
+		data = cursor.fetchone()
+		max_ticket = data['maxTicket'] if data['maxTicket'] else 0
 		ticket_id = int(max_ticket) + 1
 
 		ins = 'INSERT INTO ticket VALUES(%s, %s, %s, %s, %s)'
@@ -330,13 +347,76 @@ def purchaseTicket():
 		conn.commit()
 
 	ins = 'INSERT INTO purchases VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-	cursor.execute(ins, (email, ticket_id, airline_name, airplane_id, flight_num, departure_date_time, first_name, last_name,
-	date_of_birth, ticket_price, card_type, card_number, card_expiration, card_name, datetime.datetime.today()))
+	params = (email, ticket_id, airline_name, airplane_id, flight_num, departure_date_time, first_name, last_name, date_of_birth, ticket_price, card_type, card_number, card_expiration, card_name, datetime.datetime.today())
+	cursor.execute(ins, params)
 	conn.commit()
 
 	return redirect(url_for("custHome"))
 
+@app.route('/customer-cancel-ticket', methods=['POST'])
+def customerCancel():
+	cursor = conn.cursor()
+	email = session['username']
 
+	ticket_id = request.form['ticket_id']
+	airline_name = request.form['airline_name']
+	airplane_id = request.form['airplane_id']
+	flight_num = request.form['flight_num']
+	departure_date_time = request.form['departure_date_time']
+
+	first_name = request.form['fname']
+	last_name = request.form['lname']
+
+	query = 'DELETE FROM purchases WHERE email=%s and ticket_ID=%s and airline_name=%s and airplane_ID=%s and flight_num=%s and departure_date_time=%s and first_name=%s and last_name=%s'
+	cursor.execute(query, (email, ticket_id, airline_name, airplane_id, flight_num, departure_date_time, first_name, last_name))
+	conn.commit()
+	return redirect('/customer-tickets')
+	# return render_template('/customer/customer-tickets.html', flight=request.form)
+
+@app.route('/customer-rate-flight', methods=['GET', 'POST'])
+def customerReview():
+	cursor = conn.cursor()
+	email = session['username']
+
+	ticket_id = request.form['ticket_id']
+	airline_name = request.form['airline_name']
+	airplane_id = request.form['airplane_id']
+	flight_num = request.form['flight_num']
+	departure_date_time = request.form['departure_date_time']
+
+	rating = request.form['rating']
+	comment = request.form['comment']
+
+	ins = 'INSERT INTO reviews VALUES(%s, %s, %s, %s, %s, %s, %s)'
+	cursor.execute(ins, (email, airline_name, airplane_id, flight_num, departure_date_time, rating, comment))
+	conn.commit()
+	return redirect(url_for('custHome'))
+
+
+@app.route('/customer-tickets', methods=['GET', 'POST'])
+def custTickets():
+	email = session['username']
+	curDate = datetime.datetime.today()
+	cursor = conn.cursor()
+
+	query = 'SELECT * FROM purchases NATURAL JOIN flight WHERE email=%s ORDER BY departure_date_time DESC'
+	print(f"Current session user: {session.get('username')}")
+	cursor.execute(query, (email))
+	data = cursor.fetchall()
+	print(data)
+	
+	error = 'No Tickets Purchased'
+
+	next_day = datetime.datetime.today() + datetime.timedelta(days=1)
+	today = datetime.datetime.today()
+	
+	cursor.close()
+	if data:
+		return render_template('/customer/customer-tickets.html', flights=data, next_day=next_day, today=today)
+	else:
+		return render_template('/customer/customer-tickets.html', error=error)
+
+	
 @app.route('/staff-login')
 def staffLogin():
 	return render_template('staff/staff-login.html')
@@ -657,7 +737,7 @@ def staffAddNewFlight():
 			cursor.execute(query)
 			flight_conflicts = cursor.fetchall()
 			if flight_conflicts != 0:
-				raise Exception(f'Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}')
+				raise Exception(f'Conflicts with existing flights:')
 			
 			query = '''INSERT INTO Flight VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'''
 		
@@ -874,3 +954,5 @@ app.secret_key = 'some key that you will never guess'
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
 	app.run('127.0.0.1', 5000, debug = True)
+
+session.clear()

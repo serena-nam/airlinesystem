@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	<title> My Tickets </title>
+</head>
+<body>
+    <div class="cust-home-container">
+        <nav class="navbar">
+            <div class="home-container"> 
+                <a href="/customer-home"> Home </a>
+            </div>
+            <div class="login-container">
+                <a href="/customer-find-flights"> Find Flights </a>
+                <a href="/customer-tickets"> My Tickets </a>
+                <a href="/"> Track Spending </a>
+    
+                <a href="/logout"> Logout </a>
+            </div>
+            
+        </nav>
+
+		<div class="my-flights-container">
+			<h2 > My Tickets </h2> <br \>
+            <p> {{name}} </p>
+			{% for flight in flights %}
+			<table>
+				<tbody>
+					<thead>
+						<tr>
+                            <th> First Name </th>
+                            <th> Last Name </th>
+                            <th>Departure Airport</th>
+							<th>Arrival Airport</th>
+							<th>Flight Number</th>
+							<th>Departure Date Time</th>
+							<th>Arrival Date Time</th>
+                            <th>Airline Name</th>
+							<th>Airplane ID</th>
+							<th>Purchased Ticket Price</th>
+							<th>Flight Status</th>
+							
+						</tr>
+					</thead>
+					<tr>
+                        <td>{{ flight.first_name }}</td>
+						<td>{{ flight.last_name }}</td>
+						<td>{{ flight.departure_airport_code }}</td>
+						<td>{{ flight.arrival_airport_code }}</td>
+						<td>{{ flight.flight_num }}</td>
+						<td>{{ flight.departure_date_time }}</td>
+						<td>{{ flight.arrival_date_time }}</td>
+						
+                        <td>{{ flight.airline_name }}</td>
+						<td>{{ flight.airplane_ID }}</td>
+                        <td>{{ flight.ticket_price }}</td>
+						<td>{{ flight.flight_status }}</td>
+						
+                        {% if flight.departure_date_time > next_day %}
+                        <td>
+                            <form action="/customer-cancel-ticket" method="POST">
+                                <input type="hidden" name="flight_num" value="{{ flight.flight_num }}">
+                                <input type="hidden" name="airline_name" value="{{ flight.airline_name }}">
+                                <input type="hidden" name="airplane_id" value="{{ flight.airplane_ID }}">
+                                <input type="hidden" name="departure_date_time" value="{{ flight.departure_date_time }}">
+                                <input type="hidden" name="fname" value="{{ flight.first_name }}">
+                                <input type="hidden" name="lname" value="{{ flight.last_name }}">
+                                <input type="hidden" name="ticket_id" value="{{ flight.ticket_ID }}">
+                                <input type="submit" value="Cancel">
+                            </form>
+                        </td>
+                        {% endif %}
+					</tr>
+					
+				</tbody>
+			</table>
+			{% endfor %}
+			
+			{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+			{% endif %}
+		</div>
+	</div>
+
+
+</body>
+</html>

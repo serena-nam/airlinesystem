@@ -67,7 +67,7 @@
             </div>
             
             {% if flight %}
-            <p> {{flight['ticket_price']}} </p>
+            <p> {{flight['ticket_id']}} </p>
             <input type="hidden" name="flight_num" value="{{ flight['flight_num'] }}">
             <input type="hidden" name="airline_name" value="{{ flight['airline_name'] }}">
             <input type="hidden" name="airplane_id" value="{{ flight['airplane_id'] }}">

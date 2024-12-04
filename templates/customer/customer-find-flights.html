@@ -14,6 +14,7 @@
             </div>
             <div class="login-container">
                 <a href="/customer-find-flights"> Find Flights </a>
+                <a href="/customer-tickets"> My Tickets </a>
                 <a href="/"> Track Spending </a>
     
                 <a href="/logout"> Logout </a>
@@ -21,7 +22,6 @@
             
         </nav>
 
-        <h1> Search Flights </h1>
         <div class="flight-search-container"> 
             <h1>Find Flights</h1>
             <form class="search-container" action="/findOpenFlights" method="POST">
@@ -58,34 +58,36 @@
                 
                     <thead>
                         <tr>
-                            <th>Airline Name</th>
-                            <th>Airplane ID</th>
+                            <th>Departure Airport</th>
+                            <th>Arrival Airport</th>
                             <th>Flight Number</th>
                             <th>Departure Date Time</th>
                             <th>Arrival Date Time</th>
-                            <th>Base Ticket Price</th>
+                            <th>Current Ticket Price</th>
+                            <th>Airline Name</th>
+                            <th>Airplane ID</th>
                             <th>Flight Status</th>
-                            <th>Departure Airport Code</th>
-                            <th>Arrival Airport Code</th>
+                            
                         </tr>
                     </thead>
                     <tr>
-                        <td>{{ flight.airline_name }}</td>
-                        <td>{{ flight.airplane_ID }}</td>
+                        <td>{{ flight.departure_airport_code }}</td>
+                        <td>{{ flight.arrival_airport_code }}</td>
                         <td>{{ flight.flight_num }}</td>
                         <td>{{ flight.departure_date_time }}</td>
                         <td>{{ flight.arrival_date_time }}</td>
-                        <td>{{ flight.base_ticket_price }}</td>
+                        <td>{{ flight.ticket_price }}</td>
+                        <td>{{ flight.airline_name }}</td>
+                        <td>{{ flight.airplane_ID }}</td>
                         <td>{{ flight.flight_status }}</td>
-                        <td>{{ flight.departure_airport_code }}</td>
-                        <td>{{ flight.arrival_airport_code }}</td>
+                        
                         <td>
                             <form action="/customer-purchase-ticket" method="POST">
                                 <input type="hidden" name="flight_num" value="{{ flight.flight_num }}">
                                 <input type="hidden" name="airline_name" value="{{ flight.airline_name }}">
                                 <input type="hidden" name="airplane_id" value="{{ flight.airplane_ID }}">
                                 <input type="hidden" name="departure_date_time" value="{{ flight.departure_date_time }}">
-                                <input type="hidden" name="ticket_price" value="{{ flight.base_ticket_price }}">
+                                <input type="hidden" name="ticket_price" value="{{ flight.ticket_price }}">
                                 <input type="submit" value="Purchase">
                             </form>
                         </td>

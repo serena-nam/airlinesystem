@@ -13,6 +13,7 @@
 		</div>
 		<div class="login-container">
 			<a href="/customer-find-flights"> Find Flights </a>
+			<a href="/customer-tickets"> My Tickets </a>
 			<a href="/"> Track Spending </a>
 
 			<a href="/logout"> Logout </a>
@@ -22,14 +23,57 @@
 
 
 	<h1>Welcome {{name}}</h1>
-	<p> {{email}} </p>
 	
 	<div class="cust-home-container">
 		
+		<div class="my-flights-container">
+			<h2 > My Upcoming Flights </h2> <br \>
+			{% if not future_flights %}
+			<p> No Upcoming Flights </p>
+			{% else %}
+			{% for flight in future_flights %}
+			<table>
+				<tbody>
+					<thead>
+						<tr>
+							<th>Departure Airport</th>
+							<th>Arrival Airport</th>
+							<th>Flight Number</th>
+							<th>Departure Date Time</th>
+							<th>Arrival Date Time</th>
+							<th>Airline Name</th>
+							<th>Airplane ID</th>
+							<th>Base Ticket Price</th>
+							<th>Flight Status</th>
+							
+						</tr>
+					</thead>
+					<tr>
+						<td>{{ flight.departure_airport_code }}</td>
+						<td>{{ flight.arrival_airport_code }}</td>
+						<td>{{ flight.flight_num }}</td>
+						<td>{{ flight.departure_date_time }}</td>
+						<td>{{ flight.arrival_date_time }}</td>
+						<td>{{ flight.airline_name }}</td>
+						<td>{{ flight.airplane_ID }}</td>
+						<td>{{ flight.base_ticket_price }}</td>
+						<td>{{ flight.flight_status }}</td>
+						
+					</tr>
+					
+				</tbody>
+			</table>
+			{% endfor %}
+			{% endif %}
+		</div>
+
 
 		<div class="my-flights-container">
-			<h2 > My Flights </h2> <br \>
-			{% for flight in flights %}
+			<h2 > My Past Flights </h2> <br \>
+			{% if not past_flights %}
+			<p> No Past Flights </p>
+			{% else %}
+			{% for flight in past_flights %}
 			<table>
 				<tbody>
 					<thead>
@@ -43,6 +87,13 @@
 							<th>Flight Status</th>
 							<th>Departure Airport Code</th>
 							<th>Arrival Airport Code</th>
+							{% if flight.rating %}
+							<th> Rating </th>
+							<th> Comment</th>
+							{% else %}
+							<th> Rate Flight </th>
+							{% endif %}
+
 						</tr>
 					</thead>
 					<tr>
@@ -55,14 +106,28 @@
 						<td>{{ flight.flight_status }}</td>
 						<td>{{ flight.departure_airport_code }}</td>
 						<td>{{ flight.arrival_airport_code }}</td>
+						{% if flight.rating %}
+						<td>{{ flight.rating }}</td>
+						<td>{{ flight.comment }}</td>
+						{% else %}
+						<td>
+							<form action="/customer-rate-flight" method="POST">
+								<input type="hidden" name="flight_num" value="{{ flight.flight_num }}">
+								<input type="hidden" name="airline_name" value="{{ flight.airline_name }}">
+								<input type="hidden" name="airplane_id" value="{{ flight.airplane_ID }}">
+								<input type="hidden" name="departure_date_time" value="{{ flight.departure_date_time }}">
+								<input type="hidden" name="ticket_id" value="{{ flight.ticket_ID }}">
+								<input type="number" name="rating" placeholder="Rating" required/>
+								<input type="text" name="comment" placeholder="Comment" required/>
+								<input type="submit" value="Rate Flight">
+							</form>
+						</td>
+						{% endif %}
 					</tr>
 					
 				</tbody>
 			</table>
 			{% endfor %}
-			
-			{% if error %}
-			<p class="error"><strong>Error:</strong> {{error}}</p>
 			{% endif %}
 		</div>
 	</div>
