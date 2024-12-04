@@ -44,13 +44,16 @@
             <h3> Card Details </h3>
             <div class="register-row-container">
                 <div class="register-field-container"> 
-                    <p> Type </p>
-                    <input type="text" name="cardType" placeholder="Card Type" required/> 
+                    <label for="cardType">Card Type</label>
+                        <select name="cardType">
+                            <option value="debit">Debit</option>
+                            <option value="credit">Credit</option>
+                        </select>
                 </div>
                 
                 <div class="register-field-container"> 
                     <p> Number </p>
-                    <input type="number" name="cardNum" placeholder="Card #" required/> 
+                    <input type="tel" name="cardNum" placeholder="Card #" maxlength="16" minlength="16" required/> 
                 </div>
                 
                 <div class="register-field-container"> 
