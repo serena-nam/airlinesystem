@@ -439,7 +439,7 @@ def customerSpending():
 		date_range_end = request.form.get('date_range_end')
 	else:
 		today = datetime.date.today()
-		today_minus_1yr = (today - datetime.timedelta(days=365)).strftime('%Y-%m-%d')
+		today_minus_1yr = (today - datetime.timedelta(days=365//2)).strftime('%Y-%m-%d')
 		date_range_begin = str(today_minus_1yr)
 		date_range_end = str(today)
 
