@@ -12,13 +12,7 @@
 <body>
     <div style="display: flex; flex-direction: column; padding: 8rem; justify-content: center; gap: 2rem">
         <h1>You do not have access to view this page.</h1>
-        {% if role == "staff" %}
-            <a href="/staff-home">Back to home</a>
-        {% elif role == "customer" %}
-            <a href="/customer-home">Back to home</a>
-        {% else %}
-            <a href="/">Back to home</a>
-        {% endif %}
+        <a href="/">Back to home</a>
     </div>
 </body>
 </html>

@@ -131,7 +131,7 @@ def findOpenFlights():
 		'''
 		
 		cursor.execute(query, (departure_airport_code, arrival_airport_code, departure_date))
-	
+	app.logger.debug(query)
 	#stores the results in a variable
 	data = cursor.fetchall()
 	#use fetchall() if you are expecting more than 1 data row
@@ -304,11 +304,15 @@ def custRegisterAuth():
 
 @app.route('/customer-purchase-ticket', methods=['GET', 'POST'])
 def customerPurchase():
+	if (not session) or(session['role'] != 'customer'):
+		return render_template('/no-access.html')
 	cursor = conn.cursor()
 	return render_template('/customer/customer-purchase.html', flight=request.form)
 
 @app.route('/purchaseTicket', methods=['GET', 'POST'])
 def purchaseTicket():
+	if (not session) or(session['role'] != 'customer'):
+		return render_template('/no-access.html')
 	email = session['username']
 	cursor = conn.cursor()
 
@@ -355,6 +359,8 @@ def purchaseTicket():
 
 @app.route('/customer-cancel-ticket', methods=['POST'])
 def customerCancel():
+	if (not session) or(session['role'] != 'customer'):
+		return render_template('/no-access.html')
 	cursor = conn.cursor()
 	email = session['username']
 
@@ -375,6 +381,8 @@ def customerCancel():
 
 @app.route('/customer-rate-flight', methods=['GET', 'POST'])
 def customerReview():
+	if (not session) or(session['role'] != 'customer'):
+		return render_template('/no-access.html')
 	cursor = conn.cursor()
 	email = session['username']
 
@@ -395,6 +403,8 @@ def customerReview():
 
 @app.route('/customer-tickets', methods=['GET', 'POST'])
 def custTickets():
+	if (not session) or(session['role'] != 'customer'):
+		return render_template('/no-access.html')
 	email = session['username']
 	curDate = datetime.datetime.today()
 	cursor = conn.cursor()
@@ -416,6 +426,62 @@ def custTickets():
 	else:
 		return render_template('/customer/customer-tickets.html', error=error)
 
+@app.route('/customer-spending', methods=['GET', 'POST'])
+def customerSpending():
+	if (not session) or(session['role'] != 'customer'):
+		return render_template('/no-access.html')
+	cursor = conn.cursor()
+ 
+	email = session['username']
+	if request.method == 'POST':
+		date_range_begin = request.form.get('date_range_begin')
+		date_range_end = request.form.get('date_range_end')
+	else:
+		today = datetime.date.today()
+		today_minus_1yr = (today - datetime.timedelta(days=365)).strftime('%Y-%m-%d')
+		date_range_begin = today_minus_1yr
+		date_range_end = today
+
+	query = f'''SELECT SUM(ticket_price) as total FROM purchases WHERE 
+ 		email="{email}" and 
+   		purchase_date_time >= "{date_range_begin}" and 
+	 	purchase_date_time <= "{date_range_end}"
+	'''
+	cursor.execute(query)
+	total = cursor.fetchone()['total']
+	
+	query = f'''SELECT DATE_FORMAT(purchase_date_time, '%m.%Y') as month, 
+ 		SUM(ticket_price) as total FROM purchases WHERE 
+ 		email="{email}" and 
+   		purchase_date_time >= "{date_range_begin}" and 
+	 	purchase_date_time <= "{date_range_end}"
+		GROUP BY DATE_FORMAT(purchase_date_time, '%m.%Y')
+	'''
+	app.logger.debug(query)
+	cursor.execute(query)
+	app.logger.debug(query)
+	spending_by_months = cursor.fetchall()
+	if not spending_by_months:
+		spending_by_months = []
+
+	# fill in missing months
+	temp_date = date_range_begin
+	if type(temp_date) is str:
+		temp_date = datetime.datetime.strptime(temp_date, '%Y-%m-%d')
+	date_range_end_obj = datetime.datetime.strptime(date_range_end, '%Y-%m-%d')
+	complete_months = []
+	while temp_date <= date_range_end_obj:
+		complete_months.append(temp_date.strftime('%m.%Y'))
+		temp_date = temp_date + datetime.timedelta(days=30)
+	
+	spending_dict = {item['month']: item['total'] for item in spending_by_months}
+	spending_by_months = [{'month': m, 'total': spending_dict.get(m, 0)} for m in complete_months]
+
+	app.logger.debug(spending_by_months)
+ 
+	cursor.close()	
+	return render_template('/customer/customer-spending.html', total=total, months=spending_by_months, date_range_begin=date_range_begin, date_range_end=date_range_end)
+
 	
 @app.route('/staff-login')
 def staffLogin():
@@ -434,7 +500,7 @@ def staffRegister():
 def staffHome():
 	app.logger.debug(session)
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html', role=session['role'])
+		return render_template('/no-access.html')
 	if request.method == 'POST':
 		departure_airport_code = request.form.get('departure_airport_code')
 		arrival_airport_code = request.form.get('arrival_airport_code')
@@ -455,7 +521,7 @@ def staffHome():
 @app.route('/staff-customers-on-flight')
 def staffCustomersOnFlight():
 	if (not session) or(session['role'] != 'staff'):
-		return render_template('/no-access.html', role=session['role'])
+		return render_template('/no-access.html')
 	airline_name = request.args.get('airline_name')
 	airplane_ID = request.args.get('airplane_ID')
 	flight_num = request.args.get('flight_num')
@@ -492,7 +558,7 @@ def staffCustomersOnFlight():
 @app.route('/staff-revenue', methods=['GET'])
 def staffRevenue():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html', role=session['role'])
+		return render_template('/no-access.html')
 
 	today_minus_1mo = (datetime.date.today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
 	today_minus_1yr = (datetime.date.today() - datetime.timedelta(days=365)).strftime('%Y-%m-%d')
@@ -543,7 +609,7 @@ def staffRevenue():
 @app.route('/staff-add-new-airport', methods=["GET", "POST"])
 def staffAddNewAirport():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html', role=session['role'])
+		return render_template('/no-access.html')
 	if request.method == "POST":
 		airport_code = request.form.get('airport_code').upper()
 		name = request.form.get('name')
@@ -572,7 +638,7 @@ def staffAddNewAirport():
 @app.route('/staff-add-new-airplane', methods=["GET", "POST"])
 def staffAddNewAirplane():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html', role=session['role'])
+		return render_template('/no-access.html')
 
 	cursor = conn.cursor()
  
@@ -611,7 +677,7 @@ def staffAddNewAirplane():
 @app.route('/staff-add-new-maintenance', methods=["GET", "POST"])
 def staffAddNewMaintenance():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html', role=session['role'])
+		return render_template('/no-access.html')
 
 	cursor = conn.cursor()
 
@@ -630,19 +696,21 @@ def staffAddNewMaintenance():
 			end_date_time = request.form.get('end_date_time')
 	
 			# check for conflicting flights
-			query = f'''SELECT COUNT(*) as conflicts FROM Flight WHERE
+			query = f'''SELECT flight_num FROM Flight WHERE
 				airline_name="{airline_name}" and
 				airplane_ID="{airplane_ID}" and
 				flight_status!="cancelled" and
 				(
 					("{start_date_time}" BETWEEN departure_date_time and arrival_date_time) or
-					("{end_date_time}" BETWEEN departure_date_time and arrival_date_time)
+					("{end_date_time}" BETWEEN departure_date_time and arrival_date_time) or
+					("{start_date_time}" < departure_date_time and "{end_date_time}" > arrival_date_time)
 				)
 			'''
 			cursor.execute(query)
-			flight_conflicts = cursor.fetchone()['conflicts']
-			if flight_conflicts != 0:
-				raise Exception("Conflicts with scheduled flights")
+			flight_conflicts = cursor.fetchall()
+			app.logger.debug(flight_conflicts)
+			if flight_conflicts:
+				raise Exception(f'Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}')
 
 			# check for conflicting maintenance
 			query = f'''SELECT COUNT(*) as conflicts FROM Maintenance WHERE
@@ -681,7 +749,7 @@ def staffAddNewMaintenance():
 @app.route('/staff-add-new-flight', methods=["GET", "POST"])
 def staffAddNewFlight():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html', role=session['role'])
+		return render_template('/no-access.html')
 
 	cursor = conn.cursor()
  
@@ -731,13 +799,14 @@ def staffAddNewFlight():
 				airplane_ID="{airplane_ID}" and
 				(
 					("{departure_date_time}" BETWEEN departure_date_time and arrival_date_time) or
-					("{arrival_date_time}" BETWEEN departure_date_time and arrival_date_time)
+					("{arrival_date_time}" BETWEEN departure_date_time and arrival_date_time) or
+					("{departure_date_time}" < departure_date_time and "{arrival_date_time}" > arrival_date_time)
 				)
 			'''
 			cursor.execute(query)
 			flight_conflicts = cursor.fetchall()
-			if flight_conflicts != 0:
-				raise Exception(f'Conflicts with existing flights:')
+			if flight_conflicts:
+				raise Exception(f'Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}')
 			
 			query = '''INSERT INTO Flight VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'''
 		
@@ -757,7 +826,7 @@ def staffAddNewFlight():
 @app.route('/staff-change-flight-status', methods=['GET', 'POST'])
 def staffChangeFlightStatus():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html', role=session['role'])
+		return render_template('/no-access.html')
 
 	airline_name = request.args.get('airline_name')
 	airplane_ID = request.args.get('airplane_ID')
@@ -810,7 +879,7 @@ def staffChangeFlightStatus():
 @app.route('/staff-customer-lookup', methods=["GET", "POST"])
 def staffCustomerLookup():
 	if (not session) or (session['role'] != 'staff'):
-		return render_template('/no-access.html', role=session['role'])
+		return render_template('/no-access.html')
 
 	cursor = conn.cursor()
  
