@@ -439,8 +439,8 @@ def customerSpending():
 	else:
 		today = datetime.date.today()
 		today_minus_1yr = (today - datetime.timedelta(days=365)).strftime('%Y-%m-%d')
-		date_range_begin = today_minus_1yr
-		date_range_end = today
+		date_range_begin = str(today_minus_1yr)
+		date_range_end = str(today)
 
 	query = f'''SELECT SUM(ticket_price) as total FROM purchases WHERE 
  		email="{email}" and 
