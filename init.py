@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
 import datetime
 from hashlib import md5
+from dateutil.relativedelta import relativedelta
 #Initialize the app from Flask
 app = Flask(__name__)
 
@@ -463,16 +464,20 @@ def customerSpending():
 	spending_by_months = cursor.fetchall()
 	if not spending_by_months:
 		spending_by_months = []
+  
+	app.logger.debug(spending_by_months)
 
 	# fill in missing months
 	temp_date = date_range_begin
 	if type(temp_date) is str:
 		temp_date = datetime.datetime.strptime(temp_date, '%Y-%m-%d')
+		temp_date = temp_date.replace(day=1)
 	date_range_end_obj = datetime.datetime.strptime(date_range_end, '%Y-%m-%d')
+	date_range_end_obj = date_range_end_obj.replace(day=1)
 	complete_months = []
 	while temp_date <= date_range_end_obj:
 		complete_months.append(temp_date.strftime('%m.%Y'))
-		temp_date = temp_date + datetime.timedelta(days=30)
+		temp_date = temp_date + relativedelta(months=1)
 	
 	spending_dict = {item['month']: item['total'] for item in spending_by_months}
 	spending_by_months = [{'month': m, 'total': spending_dict.get(m, 0)} for m in complete_months]
