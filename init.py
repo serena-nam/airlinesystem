@@ -710,7 +710,7 @@ def staffAddNewMaintenance():
 			flight_conflicts = cursor.fetchall()
 			app.logger.debug(flight_conflicts)
 			if flight_conflicts:
-				raise Exception(f'Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}')
+				raise Exception(f"Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}")
 
 			# check for conflicting maintenance
 			query = f'''SELECT COUNT(*) as conflicts FROM Maintenance WHERE
@@ -806,7 +806,7 @@ def staffAddNewFlight():
 			cursor.execute(query)
 			flight_conflicts = cursor.fetchall()
 			if flight_conflicts:
-				raise Exception(f'Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}')
+				raise Exception(f"Conflicts with existing flights: {[f['flight_num'] for f in flight_conflicts]}")
 			
 			query = '''INSERT INTO Flight VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'''
 		
