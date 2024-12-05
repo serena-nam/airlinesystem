@@ -109,24 +109,29 @@ def findOpenFlights():
 		query = '''SELECT airline_name, airplane_ID, flight_num, departure_date_time, arrival_date_time, 
 		departure_airport_code, arrival_airport_code, flight_status,
 		ROUND(IF (num_seats*0.8 <= num_purchased, base_ticket_price*1.25, base_ticket_price),2) as ticket_price
-		FROM (SELECT airline_name, airplane_ID, flight_num, departure_date_time, 
+		FROM 
+		(SELECT airline_name, airplane_ID, flight_num, departure_date_time, 
 		COUNT(*) as num_purchased from Purchases 
 		GROUP BY airline_name, airplane_ID, flight_num, departure_date_time) as C 
 		NATURAL JOIN Airplane NATURAL RIGHT OUTER JOIN Flight
-		WHERE departure_airport_code = %s and
+		WHERE num_seats > num_purchased AND (departure_airport_code = %s and
    		arrival_airport_code = %s and
-		DATE(arrival_date_time) = %s
+		departure_date_time <= %s)
+		OR 
+		(departure_airport_code = %s and
+   		arrival_airport_code = %s and
+		DATE(arrival_date_time) = %s)
 		'''
-		cursor.execute(query, (departure_airport_code, arrival_airport_code, return_date))
+		cursor.execute(query, (departure_airport_code, arrival_airport_code, departure_date, arrival_airport_code, departure_airport_code, return_date))
 	else:
 		query = '''SELECT airline_name, airplane_ID, flight_num, departure_date_time, arrival_date_time, 
 		departure_airport_code, arrival_airport_code, flight_status,
 		ROUND(IF (num_seats*0.8 <= num_purchased, base_ticket_price*1.25, base_ticket_price),2) as ticket_price
 		FROM (SELECT airline_name, airplane_ID, flight_num, departure_date_time, 
-		COUNT(*) as num_purchased from Purchases 
+		COUNT(*) as num_purchased FROM Purchases 
 		GROUP BY airline_name, airplane_ID, flight_num, departure_date_time) as C 
 		NATURAL JOIN Airplane NATURAL RIGHT OUTER JOIN Flight
-		WHERE departure_airport_code = %s and
+		WHERE num_seats > num_purchased and departure_airport_code = %s and
    		arrival_airport_code = %s and
 		DATE(departure_date_time) = %s
 		'''
@@ -157,15 +162,20 @@ def findFlights():
 	departure_date = request.form.get('departure_date')
 	return_date = request.form.get('return_date')
  
+	today = datetime.date.today().strftime("%Y-%m-%d")
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
 	if(return_date):
 		query = '''SELECT * FROM Flight WHERE 
+ 		(departure_airport_code = %s and
+   		arrival_airport_code = %s and
+		departure_date_time <= %s) OR (
  		departure_airport_code = %s and
    		arrival_airport_code = %s and
-		DATE(arrival_date_time) = %s'''
-		cursor.execute(query, (departure_airport_code, arrival_airport_code, return_date))
+		DATE(arrival_date_time) = %s) and departure_date_time <= arrival_date_time'''
+
+		cursor.execute(query, (departure_airport_code, arrival_airport_code, departure_date, arrival_airport_code, departure_airport_code, return_date))
 	else:
 		query = '''SELECT * FROM Flight WHERE 
  		departure_airport_code = %s and
@@ -184,7 +194,7 @@ def findFlights():
 	error = 'No Matching Flights'
 
 	if data:
-		return render_template("home.html", findFlights=data)
+		return render_template("home.html", findFlights=data, today=today)
 	else:
 		return render_template("home.html", error=error)
 
