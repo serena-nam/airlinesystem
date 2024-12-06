@@ -52,7 +52,8 @@ def filterFlights(airline_name, departure_airport_code, arrival_airport_code, da
 #Define a route to home function - goes to home page
 @app.route('/')
 def home():
-	return render_template('/home.html')
+	today = datetime.date.today().strftime("%Y-%m-%d")
+	return render_template('/home.html', today=today)
 
 #define a route to customerLogin function - goes to customer login page
 @app.route('/customer-login')
@@ -91,7 +92,8 @@ def custHome():
 
 @app.route('/customer-find-flights') 
 def customerFindFlights():
-	return render_template('customer/customer-find-flights.html')
+	today = datetime.date.today().strftime("%Y-%m-%d")
+	return render_template('customer/customer-find-flights.html', today=today)
 
 #finds flights for search in home page
 @app.route('/findOpenFlights', methods=['POST'])
@@ -109,24 +111,29 @@ def findOpenFlights():
 		query = '''SELECT airline_name, airplane_ID, flight_num, departure_date_time, arrival_date_time, 
 		departure_airport_code, arrival_airport_code, flight_status,
 		ROUND(IF (num_seats*0.8 <= num_purchased, base_ticket_price*1.25, base_ticket_price),2) as ticket_price
-		FROM (SELECT airline_name, airplane_ID, flight_num, departure_date_time, 
+		FROM 
+		(SELECT airline_name, airplane_ID, flight_num, departure_date_time, 
 		COUNT(*) as num_purchased from Purchases 
 		GROUP BY airline_name, airplane_ID, flight_num, departure_date_time) as C 
 		NATURAL JOIN Airplane NATURAL RIGHT OUTER JOIN Flight
-		WHERE departure_airport_code = %s and
+		WHERE num_seats > num_purchased AND (departure_airport_code = %s and
    		arrival_airport_code = %s and
-		DATE(arrival_date_time) = %s
+		DATE(departure_date_time) = %s)
+		OR 
+		(departure_airport_code = %s and
+   		arrival_airport_code = %s and
+		DATE(arrival_date_time) = %s)
 		'''
-		cursor.execute(query, (departure_airport_code, arrival_airport_code, return_date))
+		cursor.execute(query, (departure_airport_code, arrival_airport_code, departure_date, arrival_airport_code, departure_airport_code, return_date))
 	else:
 		query = '''SELECT airline_name, airplane_ID, flight_num, departure_date_time, arrival_date_time, 
 		departure_airport_code, arrival_airport_code, flight_status,
 		ROUND(IF (num_seats*0.8 <= num_purchased, base_ticket_price*1.25, base_ticket_price),2) as ticket_price
 		FROM (SELECT airline_name, airplane_ID, flight_num, departure_date_time, 
-		COUNT(*) as num_purchased from Purchases 
+		COUNT(*) as num_purchased FROM Purchases 
 		GROUP BY airline_name, airplane_ID, flight_num, departure_date_time) as C 
 		NATURAL JOIN Airplane NATURAL RIGHT OUTER JOIN Flight
-		WHERE departure_airport_code = %s and
+		WHERE num_seats > num_purchased and departure_airport_code = %s and
    		arrival_airport_code = %s and
 		DATE(departure_date_time) = %s
 		'''
@@ -143,10 +150,12 @@ def findOpenFlights():
 	error = 'No Matching Flights'
 
 	app.logger.info(data)
+
+	today = datetime.date.today().strftime("%Y-%m-%d")
 	if data:
-		return render_template('customer/customer-find-flights.html', findFlights=data)
+		return render_template('customer/customer-find-flights.html', findFlights=data, today=today)
 	else:
-		return render_template('customer/customer-find-flights.html', error=error)
+		return render_template('customer/customer-find-flights.html', error=error, today=today)
 
 #finds flights for search in home page
 @app.route('/findFlights', methods=['POST'])
@@ -156,21 +165,25 @@ def findFlights():
 	arrival_airport_code = request.form.get('arrival_airport_code')
 	departure_date = request.form.get('departure_date')
 	return_date = request.form.get('return_date')
- 
+
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
 	if(return_date):
 		query = '''SELECT * FROM Flight WHERE 
+ 		(departure_airport_code = %s and
+   		arrival_airport_code = %s and
+		DATE(departure_date_time) = %s) OR (
  		departure_airport_code = %s and
    		arrival_airport_code = %s and
-		DATE(arrival_date_time) = %s'''
-		cursor.execute(query, (departure_airport_code, arrival_airport_code, return_date))
+		DATE(arrival_date_time) = %s)'''
+
+		cursor.execute(query, (departure_airport_code, arrival_airport_code, departure_date, arrival_airport_code, departure_airport_code, return_date))
 	else:
 		query = '''SELECT * FROM Flight WHERE 
  		departure_airport_code = %s and
    		arrival_airport_code = %s and
-		departure_date_time >= %s
+		DATE(departure_date_time) = %s
 	 	'''
 		cursor.execute(query, (departure_airport_code, arrival_airport_code, departure_date))
 	
@@ -183,8 +196,9 @@ def findFlights():
 	#error message if no flights are found
 	error = 'No Matching Flights'
 
+	today = datetime.date.today().strftime("%Y-%m-%d")
 	if data:
-		return render_template("home.html", findFlights=data)
+		return render_template("home.html", findFlights=data, today=today)
 	else:
 		return render_template("home.html", error=error)
 
