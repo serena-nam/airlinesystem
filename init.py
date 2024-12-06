@@ -571,14 +571,14 @@ def staffRevenue():
 	cursor = conn.cursor()
  
 	query = f'''SELECT sum(ticket_price) as total FROM purchases 
- 		WHERE airline_name="Jet Blue" and 
+ 		WHERE airline_name="{session['airline']}" and 
    		purchase_date_time >= "{today_minus_1mo}";
 	'''
 	cursor.execute(query)
 	revenue_month = cursor.fetchone()['total']
  
 	query = f'''SELECT sum(ticket_price) as total FROM purchases 
- 		WHERE airline_name="Jet Blue" and 
+ 		WHERE airline_name="{session['airline']}" and 
    		purchase_date_time >= "{today_minus_1yr}";
 	'''
 	cursor.execute(query)
