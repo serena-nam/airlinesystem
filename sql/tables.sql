@@ -48,7 +48,7 @@ CREATE TABLE works(
 	foreign key (airline_name) references Airline(airline_name)
 );
 CREATE TABLE Airport(
-	airport_code varchar(3),
+	airport_code varchar(5),
 	airport_name varchar(50),
 	city varchar(20),
 	country varchar(20),
@@ -64,8 +64,8 @@ CREATE TABLE Flight(
 	arrival_date_time datetime,
 	base_ticket_price decimal(10, 2),
 	flight_status varchar(20),
-    departure_airport_code varchar(3),
-    arrival_airport_code varchar(3),
+    departure_airport_code varchar(5),
+    arrival_airport_code varchar(5),
 	primary key (airline_name, airplane_ID, flight_num, departure_date_time),
 	foreign key (airline_name, airplane_ID) references Airplane(airline_name, airplane_ID),
     foreign key (departure_airport_code) references Airport(airport_code),
